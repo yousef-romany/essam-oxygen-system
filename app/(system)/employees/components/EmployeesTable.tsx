@@ -1,0 +1,211 @@
+"use client"
+
+import { useState } from "react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+  getSortedRowModel,
+  type SortingState,
+  type ColumnFiltersState,
+  getFilteredRowModel,
+} from "@tanstack/react-table"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { EditEmployeeModal } from "./EditEmployeeModal"
+
+type Employee = {
+  id: string
+  name: string
+  position: string
+  department: string
+  phoneNumber: string
+  email: string
+  hireDate: string
+}
+
+const data: Employee[] = [
+  {
+    id: "1",
+    name: "أحمد محمد",
+    position: "مدير المبيعات",
+    department: "المبيعات",
+    phoneNumber: "01234567890",
+    email: "ahmed@example.com",
+    hireDate: "2022-01-15",
+  },
+  {
+    id: "2",
+    name: "فاطمة علي",
+    position: "محاسب",
+    department: "المالية",
+    phoneNumber: "01098765432",
+    email: "fatima@example.com",
+    hireDate: "2021-11-01",
+  },
+  {
+    id: "3",
+    name: "محمود حسن",
+    position: "مندوب مبيعات",
+    department: "المبيعات",
+    phoneNumber: "01112223334",
+    email: "mahmoud@example.com",
+    hireDate: "2023-03-10",
+  },
+]
+
+export function EmployeesTable() {
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [globalFilter, setGlobalFilter] = useState("")
+  const [employees, setEmployees] = useState<Employee[]>(data)
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
+
+  const columns: ColumnDef<Employee>[] = [
+    {
+      accessorKey: "name",
+      header: "الاسم",
+    },
+    {
+      accessorKey: "position",
+      header: "الوظيفة",
+    },
+    {
+      accessorKey: "department",
+      header: "القسم",
+    },
+    {
+      accessorKey: "phoneNumber",
+      header: "رقم الهاتف",
+    },
+    {
+      accessorKey: "email",
+      header: "البريد الإلكتروني",
+    },
+    {
+      accessorKey: "hireDate",
+      header: ({ column }) => {
+        return (
+          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            تاريخ التعيين
+            <ArrowUpDown className="mr-2 h-4 w-4" />
+          </Button>
+        )
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const employee = row.original
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">فتح القائمة</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>الإجراءات</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setEditingEmployee(employee)}>تعديل</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleDeleteEmployee(employee.id)}>حذف</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    },
+  ]
+
+  const table = useReactTable({
+    data: employees,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      sorting,
+      columnFilters,
+      globalFilter,
+    },
+    onGlobalFilterChange: setGlobalFilter,
+  })
+
+  const handleDeleteEmployee = (employeeId: string) => {
+    setEmployees(employees.filter((employee) => employee.id !== employeeId))
+  }
+
+  const handleUpdateEmployee = (updatedEmployee: Employee) => {
+    setEmployees(employees.map((employee) => (employee.id === updatedEmployee.id ? updatedEmployee : employee)))
+    setEditingEmployee(null)
+  }
+
+  return (
+    <div>
+      <div className="flex items-center py-4">
+        <Input
+          placeholder="البحث في الموظفين..."
+          value={globalFilter}
+          onChange={(event) => setGlobalFilter(event.target.value)}
+          className="max-w-sm"
+        />
+      </div>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id} className="text-center">
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  )
+                })}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="text-center">{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  لا توجد نتائج.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      {editingEmployee && (
+        <EditEmployeeModal
+          isOpen={!!editingEmployee}
+          onClose={() => setEditingEmployee(null)}
+          employee={editingEmployee}
+          onUpdateEmployee={handleUpdateEmployee}
+        />
+      )}
+    </div>
+  )
+}
+
