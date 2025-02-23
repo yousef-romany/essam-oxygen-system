@@ -18,7 +18,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { dataExampleUsers, userDataType } from "@/constant/User.info";
+import {
+  fetchListUsers,
+  handleDeleteUser,
+  userDataType,
+} from "@/constant/User.info";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,9 +33,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import RolesUserPreviewHover from "./RolesUserPreviewHover";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ErrorDisplay } from "@/components/ErrorDisplay";
+import { useQuery } from "@tanstack/react-query";
+import UpdateUser from "./UpdateUser";
 
 const UsersTable = () => {
-  const [transactionsData] = useState<userDataType[]>(dataExampleUsers);
   const [globalFilter, setGlobalFilter] = useState("");
 
   const columns: ColumnDef<userDataType>[] = [
@@ -61,10 +68,9 @@ const UsersTable = () => {
     },
     {
       id: "actions",
-      cell: () => {
-        // const payment = row.original;
-        // const data = row.original;
-        // const deleteRole = localStorage.getItem("delete");
+      cell: ({ row }) => {
+        const data = row.original;
+        const deleteRole = localStorage.getItem("delete");
         return (
           <DropdownMenu dir="rtl">
             <DropdownMenuTrigger asChild>
@@ -76,23 +82,23 @@ const UsersTable = () => {
             <DropdownMenuContent align="start">
               <DropdownMenuLabel>أحداث</DropdownMenuLabel>
 
-              {/* <UpdateUser
+              <UpdateUser
                 id={data.id}
                 userName={data.userName}
                 password={data.password}
                 role={data.role}
                 date={data.date}
-              /> */}
+              />
 
               <DropdownMenuSeparator />
-              {/* <Button
+              <Button
                 onClick={() => handleDeleteUser(data.id)}
                 className="w-full"
                 variant={"destructive"}
                 disabled={deleteRole == "false" ? true : false}
               >
                 حذف
-              </Button> */}
+              </Button>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -100,8 +106,17 @@ const UsersTable = () => {
     },
   ];
 
+  const { isLoading, isError, data, error } = useQuery<
+    { data: userDataType[] },
+    Error
+  >({
+    queryKey: ["fetchUsersList"],
+    queryFn: fetchListUsers,
+    refetchInterval: 1500,
+  });
+  console.log(data);
   const table = useReactTable({
-    data: transactionsData,
+    data: data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -112,6 +127,15 @@ const UsersTable = () => {
     onGlobalFilterChange: setGlobalFilter,
   });
 
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+  if (isError) {
+    return <ErrorDisplay message={error.message} />;
+  }
+  if (error) {
+    return <ErrorDisplay message={"Error"} />;
+  }
   return (
     <div className="space-y-4">
       <div className="flex justify-between">

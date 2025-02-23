@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { roleDataType } from "@/constant/User.info";
 import { useRouter } from "next/navigation";
 
@@ -21,15 +22,9 @@ const UseUserRoles = () => {
     }
     return;
   };
-  const redirectUserByRole = (role?: roleDataType[]) => {
-    if (Array.isArray(role)) {
-      const theRoute = role?.filter(
-        (element: roleDataType) => element.value == true
-      );
-      route.push(`${theRoute?.at(0)?.dbName}`);
-      return;
-    }
-    return;
+  const redirectUserByRole = (role?: any) => {
+    const theRoute = role?.find((element: any) => element.value == true);
+    route.push(theRoute.dbName);
   };
 
   return {
