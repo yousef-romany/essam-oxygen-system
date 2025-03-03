@@ -98,11 +98,11 @@ export function LoginForm() {
         <form onSubmit={handleSubmit}>
           <div className="grid w-full items-center gap-4">
             <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="userName">البريد الإلكتروني</Label>
+              <Label htmlFor="userName">أسم المستخدم</Label>
               <Input
                 id="userName"
                 type="userName"
-                placeholder="أدخل بريدك الإلكتروني"
+                placeholder="أدخل أسم المستخدم"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
                 required

@@ -23,6 +23,7 @@ import {
 import { ModeToggle } from "@/components/ModeToggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
 
 const navItems = [
   {
@@ -104,6 +105,17 @@ interface SidebarProps {
   onToggle: () => void;
 }
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
+  const [storedItems, setStoredItems] = useState<{ [key: string]: boolean }>(
+    {}
+  );
+
+  useEffect(() => {
+    const data: { [key: string]: boolean } = {};
+    navItems.forEach((item) => {
+      data[item.dbName] = localStorage.getItem(item.dbName) === "true";
+    });
+    setStoredItems(data);
+  }, []);
   return (
     <div
       className={cn(
@@ -130,35 +142,31 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
       </Button>
       <nav className="flex-1">
         {navItems.map((item) => {
-          if (localStorage.getItem(item.dbName) == "true") {
-            return (
-              <TooltipProvider key={item.featureName}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Link
-                      key={item.featureName}
-                      href={`${item.href}` as string}
-                      className={cn(
-                        "flex items-center px-4 py-2 text-foreground hover:bg-accent hover:text-accent-foreground",
-                        collapsed && "justify-center"
-                      )}
-                    >
-                      <item.icon
-                        className={cn("w-5 h-5", collapsed ? "ml-0" : "ml-3")}
-                      />
+          return storedItems[item.dbName] ? (
+            <TooltipProvider key={item.featureName}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    key={item.featureName}
+                    href={`${item.href}` as string}
+                    className={cn(
+                      "flex items-center px-4 py-2 text-foreground hover:bg-accent hover:text-accent-foreground",
+                      collapsed && "justify-center"
+                    )}
+                  >
+                    <item.icon
+                      className={cn("w-5 h-5", collapsed ? "ml-0" : "ml-3")}
+                    />
 
-                      {!collapsed && item.featureName}
-                    </Link>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{item.featureName}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            );
-          } else {
-            return null;
-          }
+                    {!collapsed && item.featureName}
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{item.featureName}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : null;
         })}
       </nav>
       <ModeToggle />

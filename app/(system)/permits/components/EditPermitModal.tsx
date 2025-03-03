@@ -1,42 +1,80 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import SelectCustomerOrSupplierOrEmployee from "@/components/SelectCustomerOrSupplierOrEmployee";
+import { formatDateForInput } from "@/lib/formatDateForInput";
 
 type Permit = {
-  id: string
-  type: "صرف" | "توريد" | "خدمة"
-  customerName: string
-  amount: number
-  date: string
-  description: string
-}
+  id: number;
+  transaction_type: "expense" | "service" | "supply";
+  transaction_date: string;
+  reference: string;
+  related_entity_id: number;
+  entity_id: number;
+  entity_type: string;
+  userId: number;
+  amount: number;
+  supplier_or_client_or_employee_name: string;
+  description: string;
+};
 
 type EditPermitModalProps = {
-  isOpen: boolean
-  onClose: () => void
-  permit: Permit
-  onUpdatePermit: (permit: Permit) => void
-}
+  isOpen: boolean;
+  onClose: () => void;
+  permit: Permit;
+  onUpdatePermit: (permit: Permit) => void;
+};
 
-export function EditPermitModal({ isOpen, onClose, permit, onUpdatePermit }: EditPermitModalProps) {
-  const [editedPermit, setEditedPermit] = useState<Permit>(permit)
+export function EditPermitModal({
+  isOpen,
+  onClose,
+  permit,
+  onUpdatePermit,
+}: EditPermitModalProps) {
+  const [editedPermit, setEditedPermit] = useState<Permit>(
+    permit || {
+      id: 0,
+      transaction_type: "",
+      transaction_date: "",
+      reference: "",
+      related_entity_id: "",
+      entity_id: "",
+      entity_type: "",
+      userId: "",
+      amount: "",
+      supplier_or_client_or_employee_name: "",
+      description: "",
+    }
+  );
 
   useEffect(() => {
-    setEditedPermit(permit)
-  }, [permit])
+    setEditedPermit(permit);
+  }, [permit]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onUpdatePermit(editedPermit)
-    onClose()
-  }
+    e.preventDefault();
+    onUpdatePermit(editedPermit);
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -46,28 +84,36 @@ export function EditPermitModal({ isOpen, onClose, permit, onUpdatePermit }: Edi
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="type">نوع الإذن</Label>
+            <Label htmlFor="transaction_type">نوع الإذن</Label>
             <Select
-              value={editedPermit.type}
-              onValueChange={(value) => setEditedPermit({ ...editedPermit, type: value as "صرف" | "توريد" | "خدمة" })}
+              dir="rtl"
+              value={editedPermit.transaction_type}
+              onValueChange={(value) =>
+                setEditedPermit({
+                  ...editedPermit,
+                  transaction_type: value as "supply" | "expense" | "service",
+                })
+              }
+              required
             >
               <SelectTrigger>
                 <SelectValue placeholder="اختر نوع الإذن" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="صرف">صرف</SelectItem>
-                <SelectItem value="توريد">توريد</SelectItem>
-                <SelectItem value="خدمة">خدمة</SelectItem>
+                <SelectGroup title="نوع العمليه">
+                  <SelectItem value="expense"> - صرف</SelectItem>
+                  <SelectItem value="supply"> + توريد</SelectItem>
+                  <SelectItem value="service"> + خدمة</SelectItem>
+                </SelectGroup>
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label htmlFor="customerName">اسم العميل</Label>
-            <Input
-              id="customerName"
-              value={editedPermit.customerName}
-              onChange={(e) => setEditedPermit({ ...editedPermit, customerName: e.target.value })}
-              required
+            <Label htmlFor="customerName">اسم العميل / المورد / الموظف</Label>
+            <SelectCustomerOrSupplierOrEmployee
+              newPermit={undefined}
+              editingTransaction={editedPermit}
+              setEditingTransaction={setEditedPermit}
             />
           </div>
           <div>
@@ -76,26 +122,41 @@ export function EditPermitModal({ isOpen, onClose, permit, onUpdatePermit }: Edi
               id="amount"
               type="number"
               value={editedPermit.amount}
-              onChange={(e) => setEditedPermit({ ...editedPermit, amount: Number(e.target.value) })}
+              onChange={(e) =>
+                setEditedPermit({
+                  ...editedPermit,
+                  amount: Number(e.target.value),
+                })
+              }
               required
             />
           </div>
           <div>
-            <Label htmlFor="date">التاريخ</Label>
+            <Label htmlFor="transaction_date">التاريخ</Label>
             <Input
-              id="date"
+              id="transaction_date"
               type="date"
-              value={editedPermit.date}
-              onChange={(e) => setEditedPermit({ ...editedPermit, date: e.target.value })}
+              value={formatDateForInput(editedPermit.transaction_date)}
+              onChange={(e) =>
+                setEditedPermit({
+                  ...editedPermit,
+                  transaction_date: e.target.value,
+                })
+              }
               required
             />
           </div>
           <div>
-            <Label htmlFor="description">الوصف</Label>
+            <Label htmlFor="reference">الوصف</Label>
             <Input
-              id="description"
-              value={editedPermit.description}
-              onChange={(e) => setEditedPermit({ ...editedPermit, description: e.target.value })}
+              id="reference"
+              value={editedPermit.reference}
+              onChange={(e) =>
+                setEditedPermit({
+                  ...editedPermit,
+                  reference: e.target.value,
+                })
+              }
               required
             />
           </div>
@@ -103,6 +164,5 @@ export function EditPermitModal({ isOpen, onClose, permit, onUpdatePermit }: Edi
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

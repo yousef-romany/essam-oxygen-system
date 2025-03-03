@@ -12,30 +12,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
 import db from "@/lib/db";
+import { toast } from "@/hooks/use-toast";
 
-type BankAccount = {
+type Customer = {
   id: string;
-  account_number: string;
-  bank_name: string;
-  balance: number;
-  transactions: [];
+  name: string;
+  phoneNumber: string;
 };
 
-type NewBankAccountModalProps = {
+type NewCustomerModalProps = {
   isOpen: boolean;
   onClose: () => void;
 };
 
-export function NewBankAccountModal({
-  isOpen,
-  onClose,
-}: NewBankAccountModalProps) {
-  const [newAccount, setNewAccount] = useState<Partial<BankAccount>>({
-    account_number: "",
-    bank_name: "",
-    balance: 0,
+export function NewCustomerModal({ isOpen, onClose }: NewCustomerModalProps) {
+  const [newEmployee, setNewEmployee] = useState<Partial<Customer>>({
+    name: "",
+    phoneNumber: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,11 +37,10 @@ export function NewBankAccountModal({
 
     // Extract and map your state values to match your table column names
     const {
-      account_number,
-      bank_name,
-      balance,
+      name,
+      phoneNumber,
       // Optionally, userId might come from another source (e.g., the logged-in user)
-    } = newAccount;
+    } = newEmployee;
 
     // Example userId - ensure this value is valid in your context
     const userId = localStorage.getItem("id");
@@ -55,14 +48,14 @@ export function NewBankAccountModal({
     try {
       // Use prepared statement placeholders for security
       const query = `
-        INSERT INTO banks 
-          (account_number, bank_name, balance, userId, created_at)
+        INSERT INTO customers 
+          (name, phoneNumber, userId, created_at)
         VALUES 
-          (?, ?, ?, ?, ?);
+          (?, ?, ?, ?);
       `;
 
       // Map the values in the correct order
-      const values = [account_number, bank_name, balance, userId, Date.now()];
+      const values = [name, phoneNumber, userId, Date.now()];
 
       // Execute the query (assuming db.execute returns a promise)
       await (await db).execute(query, values);
@@ -71,10 +64,9 @@ export function NewBankAccountModal({
         title: "تم 🔐",
         description: "تم الاضافه",
       });
-      setNewAccount({
-        account_number: "",
-        bank_name: "",
-        balance: 0,
+      setNewEmployee({
+        name: "",
+        phoneNumber: "",
       });
       // Close the form/modal after successful insertion
       onClose();
@@ -93,48 +85,32 @@ export function NewBankAccountModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>إضافة حساب بنكي جديد</DialogTitle>
+          <DialogTitle>إضافة موظف جديد</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label htmlFor="account_number">رقم الحساب</Label>
+            <Label htmlFor="name">الاسم</Label>
             <Input
-              id="account_number"
-              type="number"
-              value={newAccount.account_number}
+              id="name"
+              value={newEmployee.name}
               onChange={(e) =>
-                setNewAccount({ ...newAccount, account_number: e.target.value })
+                setNewEmployee({ ...newEmployee, name: e.target.value })
               }
               required
             />
           </div>
           <div>
-            <Label htmlFor="bank_name">اسم البنك</Label>
+            <Label htmlFor="phoneNumber">رقم الهاتف</Label>
             <Input
-              id="bank_name"
-              value={newAccount.bank_name}
+              id="phoneNumber"
+              value={newEmployee.phoneNumber}
               onChange={(e) =>
-                setNewAccount({ ...newAccount, bank_name: e.target.value })
+                setNewEmployee({ ...newEmployee, phoneNumber: e.target.value })
               }
               required
             />
           </div>
-          <div>
-            <Label htmlFor="balance">الرصيد الافتتاحي</Label>
-            <Input
-              id="balance"
-              type="number"
-              value={newAccount.balance}
-              onChange={(e) =>
-                setNewAccount({
-                  ...newAccount,
-                  balance: Number(e.target.value),
-                })
-              }
-              required
-            />
-          </div>
-          <Button type="submit">إضافة الحساب</Button>
+          <Button type="submit">إضافة الموظف</Button>
         </form>
       </DialogContent>
     </Dialog>
