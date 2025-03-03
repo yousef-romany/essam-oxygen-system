@@ -4,15 +4,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  dataExampleUsers,
   roleDataType,
   userDataForm,
 } from "@/constant/User.info";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-// import db from "@/lib/db";
 import { toast } from "@/hooks/use-toast";
+import db from "@/lib/db";
 
 const AddNewUserForm = ({
   sheetCollapse,
@@ -29,38 +28,31 @@ const AddNewUserForm = ({
       roleState.some((user: roleDataType) => user.value) &&
       userEffect.some((user: roleDataType) => user.value)
     ) {
-      //   (await db)
-      //     .execute(
-      //       "INSERT INTO users (userName, password, role, date) VALUES (?, ?, ?, ?)",
-      //       [
-      //         data.userName,
-      //         data.password,
-      //         [...roleState, ...userEffect],
-      //         Date.now(),
-      //       ]
-      //     )
-      //     .then(() => {
-      //       sheetCollapse(false);
-      //       toast({
-      //         variant: "default",
-      //         title: "تم 🔐",
-      //         description: "تم الاضافه",
-      //       });
-      //     })
-      //     .catch((error: Error) => {
-      //       toast({
-      //         variant: "destructive",
-      //         title: "خطئ فى قواعد البيانات",
-      //         description: `${error}`,
-      //       });
-      //     });
-      dataExampleUsers?.push({
-        id: 2,
-        userName: data.userName,
-        password: data.password,
-        role: [...roleState, ...userEffect],
-        date: `${Date.now()}` as string,
-      });
+      (await db)
+        .execute(
+          "INSERT INTO users (userName, password, role, date) VALUES (?, ?, ?, ?)",
+          [
+            data.userName,
+            data.password,
+            [...roleState, ...userEffect],
+            Date.now(),
+          ]
+        )
+        .then(() => {
+          sheetCollapse(false);
+          toast({
+            variant: "default",
+            title: "تم 🔐",
+            description: "تم الاضافه",
+          });
+        })
+        .catch((error: Error) => {
+          toast({
+            variant: "destructive",
+            title: "خطئ فى قواعد البيانات",
+            description: `${error}`,
+          });
+        });
       sheetCollapse(false);
       return;
     } else {

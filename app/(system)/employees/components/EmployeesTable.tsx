@@ -1,7 +1,14 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   type ColumnDef,
   flexRender,
@@ -11,9 +18,9 @@ import {
   type SortingState,
   type ColumnFiltersState,
   getFilteredRowModel,
-} from "@tanstack/react-table"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+} from "@tanstack/react-table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,56 +28,32 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"
-import { EditEmployeeModal } from "./EditEmployeeModal"
+} from "@/components/ui/dropdown-menu";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { EditEmployeeModal } from "./EditEmployeeModal";
+import { useQuery } from "@tanstack/react-query";
+import {
+  fetchEmployeesList,
+  handleDeleteEmployees,
+} from "@/constant/Employee.info";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ErrorDisplay } from "@/components/ErrorDisplay";
+import db from "@/lib/db";
 
 type Employee = {
-  id: string
-  name: string
-  position: string
-  department: string
-  phoneNumber: string
-  email: string
-  hireDate: string
-}
-
-const data: Employee[] = [
-  {
-    id: "1",
-    name: "أحمد محمد",
-    position: "مدير المبيعات",
-    department: "المبيعات",
-    phoneNumber: "01234567890",
-    email: "ahmed@example.com",
-    hireDate: "2022-01-15",
-  },
-  {
-    id: "2",
-    name: "فاطمة علي",
-    position: "محاسب",
-    department: "المالية",
-    phoneNumber: "01098765432",
-    email: "fatima@example.com",
-    hireDate: "2021-11-01",
-  },
-  {
-    id: "3",
-    name: "محمود حسن",
-    position: "مندوب مبيعات",
-    department: "المبيعات",
-    phoneNumber: "01112223334",
-    email: "mahmoud@example.com",
-    hireDate: "2023-03-10",
-  },
-]
+  id: string;
+  name: string;
+  positionEm: string;
+  departmentEm: string;
+  phoneNumber: string;
+  hireDate: string;
+};
 
 export function EmployeesTable() {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = useState("")
-  const [employees, setEmployees] = useState<Employee[]>(data)
-  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
 
   const columns: ColumnDef<Employee>[] = [
     {
@@ -78,11 +61,11 @@ export function EmployeesTable() {
       header: "الاسم",
     },
     {
-      accessorKey: "position",
+      accessorKey: "positionEm",
       header: "الوظيفة",
     },
     {
-      accessorKey: "department",
+      accessorKey: "departmentEm",
       header: "القسم",
     },
     {
@@ -90,46 +73,60 @@ export function EmployeesTable() {
       header: "رقم الهاتف",
     },
     {
-      accessorKey: "email",
-      header: "البريد الإلكتروني",
-    },
-    {
       accessorKey: "hireDate",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             تاريخ التعيين
             <ArrowUpDown className="mr-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
     },
     {
       id: "actions",
       cell: ({ row }) => {
-        const employee = row.original
+        const employee = row.original;
         return (
-          <DropdownMenu>
+          <DropdownMenu dir="rtl">
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
                 <span className="sr-only">فتح القائمة</span>
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="center">
               <DropdownMenuLabel>الإجراءات</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setEditingEmployee(employee)}>تعديل</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setEditingEmployee(employee)}>
+                تعديل
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleDeleteEmployee(employee.id)}>حذف</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDeleteEmployee(Number(employee.id))}
+              >
+                حذف
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )
+        );
       },
     },
-  ]
+  ];
+
+  const { isLoading, isError, data, error } = useQuery<
+    { data: Employee[] },
+    Error
+  >({
+    queryKey: ["fetchEmployeesList"],
+    queryFn: fetchEmployeesList,
+    refetchInterval: 1000,
+  });
 
   const table = useReactTable({
-    data: employees,
+    data: data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
@@ -142,17 +139,57 @@ export function EmployeesTable() {
       globalFilter,
     },
     onGlobalFilterChange: setGlobalFilter,
-  })
+  });
 
-  const handleDeleteEmployee = (employeeId: string) => {
-    setEmployees(employees.filter((employee) => employee.id !== employeeId))
+  const handleDeleteEmployee = async (employeeId: number) =>
+    handleDeleteEmployees(employeeId);
+
+  const handleUpdateEmployee = async (updatedEmployee: Employee) => {
+    const { id, name, positionEm, departmentEm, phoneNumber, hireDate } =
+      updatedEmployee;
+
+    const userId = localStorage.getItem("id");
+
+    // Set created_at to the current timestamp. Adjust formatting if needed.
+    const createdAt = new Date().toISOString();
+
+    try {
+      const query = `
+      UPDATE employees
+      SET name = ?, positionEm = ?, departmentEm = ?, phoneNumber = ?, hireDate = ?, userId = ?, created_at = ?
+      WHERE id = ?;
+    `;
+
+      const values = [
+        name,
+        positionEm,
+        departmentEm,
+        phoneNumber,
+        hireDate,
+        userId,
+        createdAt,
+        id,
+      ];
+
+      // Execute the update query
+      (await db).execute(query, values);
+
+      setEditingEmployee(null);
+    } catch (error) {
+      console.error("Error inserting employee:", error);
+      // Optionally, display an error to the user
+    }
+  };
+
+  if (isLoading) {
+    return <LoadingSpinner />;
   }
-
-  const handleUpdateEmployee = (updatedEmployee: Employee) => {
-    setEmployees(employees.map((employee) => (employee.id === updatedEmployee.id ? updatedEmployee : employee)))
-    setEditingEmployee(null)
+  if (isError) {
+    return <ErrorDisplay message={error.message} />;
   }
-
+  if (error) {
+    return <ErrorDisplay message={"Error"} />;
+  }
   return (
     <div>
       <div className="flex items-center py-4">
@@ -171,9 +208,14 @@ export function EmployeesTable() {
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id} className="text-center">
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -181,15 +223,26 @@ export function EmployeesTable() {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="text-center">{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    <TableCell key={cell.id} className="text-center">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   لا توجد نتائج.
                 </TableCell>
               </TableRow>
@@ -201,11 +254,10 @@ export function EmployeesTable() {
         <EditEmployeeModal
           isOpen={!!editingEmployee}
           onClose={() => setEditingEmployee(null)}
-          employee={editingEmployee}
+          employee={editingEmployee as Employee}
           onUpdateEmployee={handleUpdateEmployee}
         />
       )}
     </div>
-  )
+  );
 }
-

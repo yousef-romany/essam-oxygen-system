@@ -1,40 +1,51 @@
-"use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type BankAccount = {
-  id: string
-  accountNumber: string
-  bankName: string
-  balance: number
-  transactions: any[]
-}
+  id: number;
+  accountNumber: string;
+  bankName: string;
+  balance: number;
+  transactions: any[];
+};
 
 type EditBankAccountModalProps = {
-  isOpen: boolean
-  onClose: () => void
-  account: BankAccount
-  onUpdateAccount: (account: BankAccount) => void
-}
+  isOpen: boolean;
+  onClose: () => void;
+  account: BankAccount;
+  onUpdateAccount: (account: BankAccount) => void;
+};
 
-export function EditBankAccountModal({ isOpen, onClose, account, onUpdateAccount }: EditBankAccountModalProps) {
-  const [editedAccount, setEditedAccount] = useState<BankAccount>(account)
+export function EditBankAccountModal({
+  isOpen,
+  onClose,
+  account,
+  onUpdateAccount,
+}: EditBankAccountModalProps) {
+  const [editedAccount, setEditedAccount] = useState<BankAccount>(account);
 
   useEffect(() => {
-    setEditedAccount(account)
-  }, [account])
+    setEditedAccount(account);
+  }, [account]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onUpdateAccount(editedAccount)
-    onClose()
-  }
+    e.preventDefault();
+    onUpdateAccount(editedAccount);
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -48,7 +59,12 @@ export function EditBankAccountModal({ isOpen, onClose, account, onUpdateAccount
             <Input
               id="accountNumber"
               value={editedAccount.accountNumber}
-              onChange={(e) => setEditedAccount({ ...editedAccount, accountNumber: e.target.value })}
+              onChange={(e) =>
+                setEditedAccount({
+                  ...editedAccount,
+                  accountNumber: e.target.value,
+                })
+              }
               required
             />
           </div>
@@ -57,7 +73,9 @@ export function EditBankAccountModal({ isOpen, onClose, account, onUpdateAccount
             <Input
               id="bankName"
               value={editedAccount.bankName}
-              onChange={(e) => setEditedAccount({ ...editedAccount, bankName: e.target.value })}
+              onChange={(e) =>
+                setEditedAccount({ ...editedAccount, bankName: e.target.value })
+              }
               required
             />
           </div>
@@ -67,7 +85,12 @@ export function EditBankAccountModal({ isOpen, onClose, account, onUpdateAccount
               id="balance"
               type="number"
               value={editedAccount.balance}
-              onChange={(e) => setEditedAccount({ ...editedAccount, balance: Number(e.target.value) })}
+              onChange={(e) =>
+                setEditedAccount({
+                  ...editedAccount,
+                  balance: Number(e.target.value),
+                })
+              }
               required
             />
           </div>
@@ -75,6 +98,5 @@ export function EditBankAccountModal({ isOpen, onClose, account, onUpdateAccount
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

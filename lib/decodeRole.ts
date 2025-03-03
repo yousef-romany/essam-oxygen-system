@@ -1,12 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function decodeRole(roleArray: any) {
-    if (roleArray && Array.isArray(roleArray)) {
-        const decoder = new TextDecoder("utf-8");
-        const jsonString = decoder.decode(new Uint8Array(roleArray));
-        try {
-            return JSON.parse(jsonString); // If the role is a JSON string, parse it
-        } catch (e) {
-            return jsonString; // If not, return the string itself
-        }
-    }
-    return null;
+  const uint8Array = new Uint8Array(roleArray);
+  const decoder = new TextDecoder("utf-8");
+  const decodedString = decoder.decode(uint8Array);
+
+  try {
+    // Using eval is dangerous if the input can be tampered with.
+    // Ensure that this data is safe before using eval.
+    const parsed = eval(decodedString);
+    return parsed;
+  } catch (e) {
+    console.error("Evaluating role data failed:", e);
+    return decodedString;
+  }
 }

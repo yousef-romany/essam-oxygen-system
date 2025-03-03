@@ -7,13 +7,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 
 type Category = {
-  id: string
-  name: string
-  description: string
-}
+  id: number;
+  name: string;
+  full_quantity: number;
+  empty_quantity: number;
+};
 
 type EditCategoryModalProps = {
   isOpen: boolean
@@ -52,11 +52,22 @@ export function EditCategoryModal({ isOpen, onClose, category, onUpdateCategory 
             />
           </div>
           <div>
-            <Label htmlFor="description">الوصف</Label>
-            <Textarea
-              id="description"
-              value={editedCategory.description}
-              onChange={(e) => setEditedCategory({ ...editedCategory, description: e.target.value })}
+            <Label htmlFor="empty_quantity">الرصيد (فارغ)</Label>
+            <Input
+              id="empty_quantity"
+              type="number"
+              value={editedCategory.empty_quantity}
+              onChange={(e) => setEditedCategory({ ...editedCategory, empty_quantity: Number(e.target.value) })}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="full_quantity">الرصيد (ممتلئ)</Label>
+            <Input
+              id="full_quantity"
+              type="number"
+              value={editedCategory.full_quantity}
+              onChange={(e) => setEditedCategory({ ...editedCategory, full_quantity: Number(e.target.value) })}
               required
             />
           </div>

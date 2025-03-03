@@ -13,6 +13,7 @@ import { CheckCircle, ShieldX } from "lucide-react";
 import { memo } from "react";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { decodeRole } from "@/lib/decodeRole";
 // import { decodeRole } from "@/lib/decodeRole";
 
 const RolesUserPreviewHover = ({
@@ -22,7 +23,7 @@ const RolesUserPreviewHover = ({
   data: roleDataType[];
   date: string;
 }) => {
-  //   const dataPreview: roleDataType[] = decodeRole(data);
+  const dataPreview: roleDataType[] = decodeRole(data);
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
@@ -33,12 +34,19 @@ const RolesUserPreviewHover = ({
           <div className="space-y-1 w-full">
             <h4 className="text-sm font-semibold">@تفصيل عن صلحيات</h4>
             <ul className="flex flex-col items-start w-full gap-1">
-              {data
+              {dataPreview
                 ?.filter((element: roleDataType) => element.value == true)
                 ?.map((item: roleDataType, key: number) => (
                   <li
                     key={key}
-                    className="list-disc list-inside flex gap-1 text-destructive"
+                    className={cn(
+                      "list-disc list-inside flex gap-1 ",
+                      item.featureName == "تعديل" ||
+                        item.featureName == "أضافه" ||
+                        item.featureName == "حذف"
+                        ? "text-destructive"
+                        : "text-primary"
+                    )}
                   >
                     <CheckCircle
                       className={cn("h-5 w-5")}
@@ -47,7 +55,7 @@ const RolesUserPreviewHover = ({
                         item.featureName == "أضافه" ||
                         item.featureName == "حذف"
                           ? "red"
-                          : ""
+                          : "green"
                       }
                     />
 
@@ -60,7 +68,14 @@ const RolesUserPreviewHover = ({
                 ?.map((item: roleDataType, key: number) => (
                   <li
                     key={key}
-                    className="list-disc list-inside flex gap-1 text-destructive"
+                    className={cn(
+                      "list-disc list-inside flex gap-1 ",
+                      item.featureName == "تعديل" ||
+                        item.featureName == "أضافه" ||
+                        item.featureName == "حذف"
+                        ? "text-destructive"
+                        : "text-primary"
+                    )}
                   >
                     <ShieldX
                       className={cn("h-5 w-5")}
@@ -69,7 +84,7 @@ const RolesUserPreviewHover = ({
                         item.featureName == "أضافه" ||
                         item.featureName == "حذف"
                           ? "red"
-                          : ""
+                          : "green"
                       }
                     />
                     {item.featureName}

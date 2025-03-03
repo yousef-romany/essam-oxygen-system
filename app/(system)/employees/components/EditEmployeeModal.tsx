@@ -11,10 +11,9 @@ import { Label } from "@/components/ui/label"
 type Employee = {
   id: string
   name: string
-  position: string
-  department: string
+  positionEm: string
+  departmentEm: string
   phoneNumber: string
-  email: string
   hireDate: string
 }
 
@@ -58,8 +57,8 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onUpdateEmployee 
             <Label htmlFor="position">الوظيفة</Label>
             <Input
               id="position"
-              value={editedEmployee.position}
-              onChange={(e) => setEditedEmployee({ ...editedEmployee, position: e.target.value })}
+              value={editedEmployee.positionEm}
+              onChange={(e) => setEditedEmployee({ ...editedEmployee, positionEm: e.target.value })}
               required
             />
           </div>
@@ -67,8 +66,8 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onUpdateEmployee 
             <Label htmlFor="department">القسم</Label>
             <Input
               id="department"
-              value={editedEmployee.department}
-              onChange={(e) => setEditedEmployee({ ...editedEmployee, department: e.target.value })}
+              value={editedEmployee.departmentEm}
+              onChange={(e) => setEditedEmployee({ ...editedEmployee, departmentEm: e.target.value })}
               required
             />
           </div>
@@ -78,16 +77,6 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onUpdateEmployee 
               id="phoneNumber"
               value={editedEmployee.phoneNumber}
               onChange={(e) => setEditedEmployee({ ...editedEmployee, phoneNumber: e.target.value })}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="email">البريد الإلكتروني</Label>
-            <Input
-              id="email"
-              type="email"
-              value={editedEmployee.email}
-              onChange={(e) => setEditedEmployee({ ...editedEmployee, email: e.target.value })}
               required
             />
           </div>

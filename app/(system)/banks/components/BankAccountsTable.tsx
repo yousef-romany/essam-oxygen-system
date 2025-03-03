@@ -1,7 +1,15 @@
-"use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useState } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   type ColumnDef,
   flexRender,
@@ -11,9 +19,9 @@ import {
   type SortingState,
   type ColumnFiltersState,
   getFilteredRowModel,
-} from "@tanstack/react-table"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+} from "@tanstack/react-table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,58 +29,42 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"
-import { BankAccountModal } from "./BankAccountModal"
-import { EditBankAccountModal } from "./EditBankAccountModal"
+} from "@/components/ui/dropdown-menu";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { BankAccountModal } from "./BankAccountModal";
+import { EditBankAccountModal } from "./EditBankAccountModal";
+import { useQuery } from "@tanstack/react-query";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ErrorDisplay } from "@/components/ErrorDisplay";
+import { fetchBanksList, handleDeleteBanks } from "@/constant/Banks.info";
+import db from "@/lib/db";
 
 type BankAccount = {
-  id: string
-  accountNumber: string
-  bankName: string
-  balance: number
-  transactions: Transaction[]
-}
+  id: number;
+  accountNumber: string;
+  bankName: string;
+  balance: number;
+  transactions: Transaction[];
+  finalBalance: any
+};
 
 type Transaction = {
-  id: string
-  documentNumber: string
-  amount: number
-  date: string
-  description: string
-}
-
-const data: BankAccount[] = [
-  {
-    id: "1",
-    accountNumber: "1234567890",
-    bankName: "بنك مصر",
-    balance: 50000,
-    transactions: [
-      { id: "1", documentNumber: "DOC001", amount: 1000, date: "2023-07-01", description: "إيداع" },
-      { id: "2", documentNumber: "DOC002", amount: -500, date: "2023-07-02", description: "سحب" },
-    ],
-  },
-  {
-    id: "2",
-    accountNumber: "0987654321",
-    bankName: "البنك الأهلي المصري",
-    balance: 75000,
-    transactions: [
-      { id: "3", documentNumber: "DOC003", amount: 2000, date: "2023-07-03", description: "إيداع" },
-      { id: "4", documentNumber: "DOC004", amount: -1000, date: "2023-07-04", description: "سحب" },
-    ],
-  },
-]
+  id: string;
+  documentNumber: string;
+  amount: number;
+  date: string;
+  description: string;
+};
 
 export function BankAccountsTable() {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = useState("")
-  const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isEditAccountModalOpen, setIsEditAccountModalOpen] = useState(false)
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>(data)
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(
+    null
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditAccountModalOpen, setIsEditAccountModalOpen] = useState(false);
 
   const columns: ColumnDef<BankAccount>[] = [
     {
@@ -84,30 +76,37 @@ export function BankAccountsTable() {
       header: "اسم البنك",
     },
     {
-      accessorKey: "balance",
+      accessorKey: "finalBalance",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             الرصيد
             <ArrowUpDown className="mr-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       cell: ({ row }) => {
-        const amount = Number.parseFloat(row.getValue("balance"))
+        const amount = Number.parseFloat(row.getValue("finalBalance"));
         const formatted = new Intl.NumberFormat("ar-EG", {
           style: "currency",
           currency: "EGP",
-        }).format(amount)
-        return <div>{formatted}</div>
+        }).format(amount);
+        return (
+          <div>
+            {formatted}
+          </div>
+        );
       },
     },
     {
       id: "actions",
       cell: ({ row }) => {
-        const account = row.original
+        const account = row.original;
         return (
-          <DropdownMenu>
+          <DropdownMenu dir="rtl">
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
                 <span className="sr-only">فتح القائمة</span>
@@ -116,19 +115,53 @@ export function BankAccountsTable() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>الإجراءات</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => handleViewTransactions(account)}>عرض المعاملات</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleViewTransactions(account)}>
+                عرض المعاملات
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleEditAccount(account)}>تعديل</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDeleteAccount(account.id)}>حذف</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleEditAccount(account)}>
+                تعديل
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDeleteAccount(account.id)}>
+                حذف
+              </DropdownMenuItem>
             </DropdownMenuContent>
+            {selectedAccount && (
+              <BankAccountModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                account={selectedAccount}
+                onUpdateAccount={handleUpdateAccount}
+                refetch={() => refetch()}
+                setIsModalOpen={setIsModalOpen}
+              />
+            )}
+
+            {selectedAccount && (
+              <EditBankAccountModal
+                isOpen={isEditAccountModalOpen}
+                onClose={() => setIsEditAccountModalOpen(false)}
+                account={selectedAccount}
+                onUpdateAccount={handleUpdateAccount}
+              />
+            )}
           </DropdownMenu>
-        )
+        );
       },
     },
-  ]
+  ];
+
+  const { isLoading, isError, data, error, refetch } = useQuery<
+    { data: BankAccount[] },
+    Error
+  >({
+    queryKey: ["fetchBanksList"],
+    queryFn: async () => await fetchBanksList(),
+    refetchInterval: 2000,
+  });
 
   const table = useReactTable({
-    data: bankAccounts,
+    data: data?.data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
@@ -141,28 +174,57 @@ export function BankAccountsTable() {
       globalFilter,
     },
     onGlobalFilterChange: setGlobalFilter,
-  })
+  });
 
   const handleViewTransactions = (account: BankAccount) => {
-    setSelectedAccount(account)
-    setIsModalOpen(true)
-  }
+    setSelectedAccount(account);
+    setIsModalOpen(true);
+  };
 
   const handleEditAccount = (account: BankAccount) => {
-    setSelectedAccount(account)
-    setIsEditAccountModalOpen(true)
+    setSelectedAccount(account);
+    setIsEditAccountModalOpen(true);
+  };
+
+  const handleDeleteAccount = async (accountId: number) =>
+    handleDeleteBanks(accountId);
+
+  const handleUpdateAccount = async (updatedAccount: BankAccount) => {
+    const { id, accountNumber, bankName, balance } = updatedAccount;
+
+    const userId = localStorage.getItem("id");
+
+    // Set created_at to the current timestamp. Adjust formatting if needed.
+
+    try {
+      const query = `
+      UPDATE banks
+      SET bank_name = ?, account_number = ?, balance = ?, userId = ?
+      WHERE id = ?;
+    `;
+
+      const values = [bankName, accountNumber, balance, userId, id];
+
+      // Execute the update query
+      (await db).execute(query, values);
+
+      setIsModalOpen(false);
+      setIsEditAccountModalOpen(false);
+    } catch (error) {
+      console.error("Error inserting employee:", error);
+      // Optionally, display an error to the user
+    }
+  };
+
+  if (isLoading) {
+    return <LoadingSpinner />;
   }
-
-  const handleDeleteAccount = (accountId: string) => {
-    setBankAccounts(bankAccounts.filter((account) => account.id !== accountId))
+  if (isError) {
+    return <ErrorDisplay message={error.message} />;
   }
-
-  // const handleAddAccount = (newAccount: BankAccount) => {
-  //   setBankAccounts([...bankAccounts, newAccount])
-  // }
-
-  const handleUpdateAccount = (updatedAccount: BankAccount) => {
-    setBankAccounts(bankAccounts.map((account) => (account.id === updatedAccount.id ? updatedAccount : account)))
+  if (error) {
+    console.log(error);
+    return <ErrorDisplay message={"Error"} />;
   }
 
   return (
@@ -183,9 +245,14 @@ export function BankAccountsTable() {
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id} className="text-center">
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -193,15 +260,26 @@ export function BankAccountsTable() {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="text-center">{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    <TableCell key={cell.id} className="text-center">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   لا توجد نتائج.
                 </TableCell>
               </TableRow>
@@ -209,24 +287,6 @@ export function BankAccountsTable() {
           </TableBody>
         </Table>
       </div>
-      {selectedAccount && (
-        <BankAccountModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          account={selectedAccount}
-          onUpdateAccount={handleUpdateAccount}
-        />
-      )}
-      
-      {selectedAccount && (
-        <EditBankAccountModal
-          isOpen={isEditAccountModalOpen}
-          onClose={() => setIsEditAccountModalOpen(false)}
-          account={selectedAccount}
-          onUpdateAccount={handleUpdateAccount}
-        />
-      )}
     </div>
-  )
+  );
 }
-
