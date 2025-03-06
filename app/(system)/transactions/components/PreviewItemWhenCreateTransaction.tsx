@@ -40,8 +40,8 @@ const PreviewItemWhenCreateTransaction = ({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {products.length > 0 ? (
-          products.map((product: productsDataType) => (
+        {products?.length > 0 ? (
+          products?.map((product: productsDataType) => (
             <TableRow className="h-fit" key={product.id}>
               <TableCell className="text-center">{product.title}</TableCell>
               <TableCell className="text-center">

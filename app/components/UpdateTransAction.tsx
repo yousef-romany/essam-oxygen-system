@@ -1,5 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import { memo, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -18,17 +19,16 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { PlusCircle, RefreshCcwIcon } from "lucide-react";
-import UseTransAction from "@/hooks/UseTransAction";
-import SelectSourcerOrClient from "./SelectSourcerOrClient";
-import EmployeeProcessTransAction from "./EmployeeProcessTransAction";
-import SelectProducts from "./SelectProducts";
-import PreviewItemWhenCreateTransaction from "./PreviewItemWhenCreateTransaction";
 import POSInvoke from "@/components/POSInvoke";
 import { useReactToPrint } from "react-to-print";
 import { useRef } from "react";
+import SelectSourcerOrClient from "../(system)/transactions/components/SelectSourcerOrClient";
+import SelectProducts from "../(system)/transactions/components/SelectProducts";
+import PreviewItemWhenCreateTransaction from "../(system)/transactions/components/PreviewItemWhenCreateTransaction";
+import EmployeeProcessTransAction from "../(system)/transactions/components/EmployeeProcessTransAction";
+import UseUpdateTransAction from "@/hooks/UseUpdateTransAction";
 
-const TransActionsSheet = () => {
+const UpdateTransAction = ({ transaction }: any) => {
   const {
     transactionType,
     setTransactionType,
@@ -55,27 +55,45 @@ const TransActionsSheet = () => {
     categoriesList,
     // ------- End data ------
     // ------- Start state of POS Invokes ------
-    stateInvoke,
     // ------- End state of POS Invokes ------
     // ------- Start handleSubmitData -------
     handleSubmitData,
     // ------- End handleSubmitData -------
 
+    setNewTransactionIdState,
     newTransactionIdState,
+    setBackUpProducts,
+  } = UseUpdateTransAction();
 
-    handleRefresh
-  } = UseTransAction();
+  useEffect(() => {
+    handleUndo();
+  }, [transaction]);
+
+  const handleUndo = () => {
+    setNewTransactionIdState(transaction.id);
+    setEmployee(transaction.employee);
+    setPaymentEmployee(0);
+    setSourcerOrClient(
+      transaction.customer ? transaction.customer : transaction.supplier
+    );
+    setEntity_type("else");
+    setPaymentStatus(transaction.payment_status);
+    setProducts(transaction.items);
+    setTransactionType(transaction.transaction_type);
+    setPaymentEmployee(transaction.paymentEmployee);
+    setBackUpProducts(transaction.items);
+  };
 
   const posInvokeRef: any = useRef<any>(null);
 
-  const handleSubmit = () => handleSubmitData();
+  const handleSubmit = () => handleSubmitData(newTransactionIdState);
 
   const handlePrintPos = useReactToPrint({ contentRef: posInvokeRef });
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button>
-          <PlusCircle className="ml-2 h-4 w-4" /> معاملة جديدة
+        <Button variant={"ghost"} className="w-full">
+          تعديل / طباعه
         </Button>
       </SheetTrigger>
       <SheetContent
@@ -84,7 +102,7 @@ const TransActionsSheet = () => {
         dir="rtl"
       >
         <SheetHeader>
-          <SheetTitle>أضف معامله</SheetTitle>
+          <SheetTitle>تعديل معامله</SheetTitle>
         </SheetHeader>
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-4">
@@ -164,23 +182,14 @@ const TransActionsSheet = () => {
                 أجمالى الفاتوره : {total.toFixed(2)}
               </h1>
             </div>
-            <Button onClick={handleSubmit} disabled={stateInvoke}>
-              إضافة المعاملة
+            <Button onClick={() => handleSubmit()}>تعديل المعاملة</Button>
+            <Button onClick={() => handlePrintPos()} variant={"secondary"}>
+              Print
             </Button>
-            {stateInvoke && (
-              <>
-              <Button onClick={() => handlePrintPos()} variant={"secondary"}>
-                Print
-              </Button>
-              <Button onClick={() => handleRefresh()} variant={"secondary"}>
-                <RefreshCcwIcon />
-              </Button>
-              </>
-            )}
           </SheetFooter>
         </div>
       </SheetContent>
-      <div ref={posInvokeRef} className="hidden print:block">
+      <div ref={posInvokeRef} className="hidden print:!block">
         <POSInvoke
           products={products}
           sourcerOrClient={sourcerOrClient}
@@ -193,4 +202,5 @@ const TransActionsSheet = () => {
     </Sheet>
   );
 };
-export default TransActionsSheet;
+
+export default memo(UpdateTransAction);

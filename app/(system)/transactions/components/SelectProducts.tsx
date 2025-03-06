@@ -26,20 +26,14 @@ import React from "react";
 import { Label } from "@/components/ui/label";
 import { productsDataType } from "@/hooks/UseTransAction";
 
-const data: { id: number; title: string; price: number }[] = [
-  {
-    id: 1,
-    title: "شيبسى",
-    price: 100,
-  },
-];
-
 const SelectProducts = ({
   setProducts,
   products,
+  data,
 }: {
   setProducts: Dispatch<SetStateAction<productsDataType | null>> | any;
   products: productsDataType[];
+  data: any[];
 }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [value, setValue] = useState<string>("");
@@ -50,14 +44,20 @@ const SelectProducts = ({
     }
     return;
   }, [value]);
+  useEffect(() => {
+    if (products.length == 0) {
+      setValue(String(""));
+    }
+    return;
+  }, [products]);
   const handleSaveInProducts = () => {
     const objectProduct = data?.find(
-      (item: { id: number; title: string; price: number }) =>
-        item?.title === value
+      (item: { id: number; name: string; price: number }) =>
+        item?.name === value
     );
     if (
       products?.some(
-        (item: productsDataType) => item?.title == objectProduct?.title
+        (item: productsDataType) => item?.title == objectProduct?.name
       )
     ) {
       toast({
@@ -71,7 +71,7 @@ const SelectProducts = ({
           {
             id: prev.length == 0 ? 0 + 1 : (prev?.at(-1)?.id ?? 0) + 1,
             idDb: objectProduct?.id,
-            title: objectProduct?.title,
+            title: objectProduct?.name,
             price: Number(objectProduct?.price),
             amount: 1,
             type: "ممتلئ",
@@ -93,9 +93,9 @@ const SelectProducts = ({
           >
             {value
               ? data.find(
-                  (item: { id: number; title: string; price: number }) =>
-                    item?.title === value
-                )?.title
+                  (item: { id: number; name: string; price: number }) =>
+                    item?.name === value
+                )?.name
               : "أختر صنف..."}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -106,21 +106,21 @@ const SelectProducts = ({
             <CommandList>
               <CommandEmpty>لا يوجد صنف.</CommandEmpty>
               <CommandGroup>
-                {data.map(
-                  (item: { id: number; title: string; price: number }) => (
+                {data?.map(
+                  (item: { id: number; name: string; price: number }) => (
                     <CommandItem
                       key={item?.id}
-                      value={item?.title}
+                      value={item?.name}
                       onSelect={(currentValue) => {
                         setValue(currentValue === value ? "" : currentValue);
                         setOpen(false);
                       }}
                     >
-                      {item?.title}
+                      {item?.name}
                       <CheckIcon
                         className={cn(
                           "ml-auto h-4 w-4",
-                          value === item?.title ? "opacity-100" : "opacity-0"
+                          value === item?.name ? "opacity-100" : "opacity-0"
                         )}
                       />
                     </CommandItem>

@@ -1,7 +1,15 @@
-"use client"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 
-import { useState } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useEffect, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   type ColumnDef,
   flexRender,
@@ -11,9 +19,9 @@ import {
   type SortingState,
   type ColumnFiltersState,
   getFilteredRowModel,
-} from "@tanstack/react-table"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+} from "@tanstack/react-table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,148 +29,121 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
-
-type Transaction = {
-  id: string
-  type: "استلام من المورد" | "إرجاع للمورد" | "بيع للعميل" | "إرجاع من العميل"
-  name: string
-  cylinderType: string
-  quantity: number
-  worker: string
-  amountPaid: number
-  paymentStatus: "مدفوع" | "قيد الانتظار"
-  dueDate: string | null
-  status: "قيد الانتظار" | "مكتمل"
-  date: string
-}
-
-const data: Transaction[] = [
-  {
-    id: "TRX001",
-    type: "استلام من المورد",
-    name: "شركة الغاز المحدودة",
-    cylinderType: "النوع أ",
-    quantity: 50,
-    worker: "أحمد محمد",
-    amountPaid: 5000,
-    paymentStatus: "مدفوع",
-    dueDate: null,
-    status: "مكتمل",
-    date: "2023-07-01",
-  },
-  {
-    id: "TRX002",
-    type: "بيع للعميل",
-    name: "شركة أ ب ج للصناعات",
-    cylinderType: "النوع ب",
-    quantity: 20,
-    worker: "فاطمة علي",
-    amountPaid: 0,
-    paymentStatus: "قيد الانتظار",
-    dueDate: "2023-07-15",
-    status: "قيد الانتظار",
-    date: "2023-07-02",
-  },
-  {
-    id: "TRX003",
-    type: "إرجاع للمورد",
-    name: "شركة الغاز المحدودة",
-    cylinderType: "النوع أ",
-    quantity: 10,
-    worker: "محمود حسن",
-    amountPaid: 1000,
-    paymentStatus: "مدفوع",
-    dueDate: null,
-    status: "مكتمل",
-    date: "2023-07-03",
-  },
-]
+} from "@/components/ui/dropdown-menu";
+import { ArrowUpDown, MoreHorizontal } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import {
+  fetchTransactionsList,
+  handleDeleteTransaction,
+} from "@/constant/Transaction.info";
+import { useQuery } from "@tanstack/react-query";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ErrorDisplay } from "@/components/ErrorDisplay";
+import { formatDateForInput } from "@/lib/formatDateForInput";
+import HoverTableCard from "./HoverTableCard";
+import UpdateTransAction from "./UpdateTransAction";
 
 export function TransactionsTable() {
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = useState("")
-  const [dateFrom, setDateFrom] = useState("")
-  const [dateTo, setDateTo] = useState("")
-  const [transactions, setTransactions] = useState<Transaction[]>(data)
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
-  const columns: ColumnDef<Transaction>[] = [
+  const columns: ColumnDef<any>[] = [
     {
       accessorKey: "id",
       header: "رقم المعاملة",
     },
     {
-      accessorKey: "type",
+      accessorKey: "transaction_type",
       header: "نوع المعاملة",
     },
     {
       accessorKey: "name",
       header: "اسم المورد/العميل",
-    },
-    {
-      accessorKey: "cylinderType",
-      header: "نوع الأسطوانة",
+      cell: ({ row }: any) => {
+        return (
+          <div>
+            {row?.original.customer_name
+              ? row?.original["transaction_type"] == "بيع"
+                ? `عميل : ${row?.original.customer_name}`
+                : `مورد : ${row?.original.supplier_name}`
+              : "مجهول"}
+          </div>
+        );
+      },
     },
     {
       accessorKey: "quantity",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             الكمية
             <ArrowUpDown className="mr-2 h-4 w-4" />
           </Button>
-        )
+        );
+      },
+      cell: ({ row }) => {
+        return <div>{row.original?.items?.length}</div>;
       },
     },
     {
-      accessorKey: "worker",
+      accessorKey: "employee",
       header: "العامل المسؤول",
+      cell: ({ row }: any) => {
+        return <div>{row.original?.employee?.name}</div>;
+      },
     },
     {
-      accessorKey: "amountPaid",
+      accessorKey: "total_amount",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
             المبلغ المدفوع
             <ArrowUpDown className="mr-2 h-4 w-4" />
           </Button>
-        )
+        );
       },
       cell: ({ row }) => {
-        const amount = Number.parseFloat(row.getValue("amountPaid"))
+        const amount = Number.parseFloat(row.getValue("total_amount"));
         const formatted = new Intl.NumberFormat("ar-EG", {
           style: "currency",
           currency: "EGP",
-        }).format(amount)
-        return <div>{formatted}</div>
+        }).format(amount);
+        return <div>{formatted}</div>;
       },
     },
     {
-      accessorKey: "paymentStatus",
+      accessorKey: "payment_status",
       header: "حالة الدفع",
     },
     {
-      accessorKey: "dueDate",
-      header: "تاريخ الاستحقاق",
+      accessorKey: "items",
+      header: "تفاصيل",
+      cell: ({ row }: any) => {
+        return <HoverTableCard row={row} />;
+      },
     },
     {
-      accessorKey: "status",
-      header: "الحالة",
-    },
-    {
-      accessorKey: "date",
+      accessorKey: "created_at",
       header: "تاريخ المعاملة",
+      cell: ({ row }) => {
+        return <h1>{formatDateForInput(row.getValue("created_at"))}</h1>;
+      },
     },
     {
       id: "actions",
       cell: ({ row }) => {
-        const transaction = row.original
+        const transaction = row.original;
         return (
-          <DropdownMenu>
+          <DropdownMenu dir="rtl">
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
                 <span className="sr-only">فتح القائمة</span>
@@ -171,18 +152,39 @@ export function TransactionsTable() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>الإجراءات</DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => console.log("تعديل", transaction)}>تعديل</DropdownMenuItem>
+              <UpdateTransAction transaction={transaction} />
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => console.log("حذف", transaction)}>حذف</DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleDeleteTransaction(Number(transaction.id))}
+              >
+                حذف
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        )
+        );
       },
     },
-  ]
+  ];
+
+  const { isLoading, isError, data, error } = useQuery<any[]>({
+    queryKey: ["fetchTransactionsList"],
+    queryFn: async () => await fetchTransactionsList(),
+    refetchInterval: 1500,
+  });
+
+  const [transactions, setTransactions] = useState<any[]>([]);
+
+  // ✅ Ensure `data` exists before setting transactions
+  useEffect(() => {
+    if (data) {
+      setTransactions(data);
+    }
+  }, [data]);
+
+  console.log(data);
 
   const table = useReactTable({
-    data: transactions,
+    data: transactions, // ✅ `transactions` instead of `transactions || []`
     columns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
@@ -195,19 +197,37 @@ export function TransactionsTable() {
       globalFilter,
     },
     onGlobalFilterChange: setGlobalFilter,
-  })
+  });
 
   const filterTransactions = () => {
-    let filteredData = [...data]
+    if (!transactions.length) return;
+
+    let filteredData = [...transactions]; // ✅ Use `transactions` instead of `data`
 
     if (dateFrom && dateTo) {
       filteredData = filteredData.filter((transaction) => {
-        const transactionDate = new Date(transaction.date)
-        return transactionDate >= new Date(dateFrom) && transactionDate <= new Date(dateTo)
-      })
+        const transactionDateStr = transaction["created_at"]?.split(" ")[0]; // ✅ إزالة الوقت
+
+        if (!transactionDateStr) return false;
+
+        const transactionDate = new Date(transactionDateStr); // ✅ تحويل إلى Date
+        const fromDate = new Date(dateFrom);
+        const toDate = new Date(dateTo);
+
+        return transactionDate >= fromDate && transactionDate <= toDate;
+      });
     }
 
-    setTransactions(filteredData)
+    setTransactions(filteredData);
+  };
+
+  // ✅ Handle loading and error states properly
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (isError) {
+    return <ErrorDisplay message={error?.message || "Error occurred"} />;
   }
 
   return (
@@ -215,11 +235,21 @@ export function TransactionsTable() {
       <div className="flex items-center py-4">
         <div className="flex items-center space-x-2 ml-4">
           <Label htmlFor="dateFrom">من:</Label>
-          <Input id="dateFrom" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+          <Input
+            id="dateFrom"
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+          />
         </div>
         <div className="flex items-center space-x-2 ml-4">
           <Label htmlFor="dateTo">إلى:</Label>
-          <Input id="dateTo" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+          <Input
+            id="dateTo"
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+          />
         </div>
         <Button onClick={filterTransactions} className="ml-4">
           تطبيق الفلتر
@@ -230,34 +260,6 @@ export function TransactionsTable() {
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm ml-4"
         />
-        <Select
-          onValueChange={(value) => table.getColumn("type")?.setFilterValue(value)}
-          value={(table.getColumn("type")?.getFilterValue() as string) ?? ""}
-        >
-          <SelectTrigger className="ml-4 w-[180px]">
-            <SelectValue placeholder="تصفية حسب النوع" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">الكل</SelectItem>
-            <SelectItem value="استلام من المورد">استلام من المورد</SelectItem>
-            <SelectItem value="إرجاع للمورد">إرجاع للمورد</SelectItem>
-            <SelectItem value="بيع للعميل">بيع للعميل</SelectItem>
-            <SelectItem value="إرجاع من العميل">إرجاع من العميل</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select
-          onValueChange={(value) => table.getColumn("paymentStatus")?.setFilterValue(value)}
-          value={(table.getColumn("paymentStatus")?.getFilterValue() as string) ?? ""}
-        >
-          <SelectTrigger className="ml-4 w-[180px]">
-            <SelectValue placeholder="تصفية حسب حالة الدفع" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">الكل</SelectItem>
-            <SelectItem value="مدفوع">مدفوع</SelectItem>
-            <SelectItem value="قيد الانتظار">قيد الانتظار</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
       <div className="rounded-md border">
         <Table>
@@ -267,9 +269,14 @@ export function TransactionsTable() {
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead className="text-center" key={header.id}>
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -277,15 +284,26 @@ export function TransactionsTable() {
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell className="text-center" key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                    <TableCell className="text-center" key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   لا توجد نتائج.
                 </TableCell>
               </TableRow>
@@ -294,6 +312,5 @@ export function TransactionsTable() {
         </Table>
       </div>
     </div>
-  )
+  );
 }
-
