@@ -20,28 +20,20 @@ import { CaretSortIcon, CheckIcon } from "@radix-ui/react-icons";
 import { sourcerOrClientDataType } from "@/hooks/UseTransAction";
 import { cn } from "@/lib/utils";
 
-const data: sourcerOrClientDataType[] = [
-  {
-    id: 1,
-    name: "yousef client",
-    type: "client",
-  },
-  {
-    id: 2,
-    name: "yousef sourcer",
-    type: "sourcer",
-  },
-];
 const SelectSourcerOrClient = ({
   transactionType,
   sourcerOrClient,
   setSourcerOrClient,
+  data,
+  setEntity_type
 }: {
   transactionType: string;
   sourcerOrClient?: sourcerOrClientDataType | null;
   setSourcerOrClient?:
     | Dispatch<SetStateAction<sourcerOrClientDataType | null>>
     | any;
+  data: sourcerOrClientDataType[];
+  setEntity_type: Dispatch<SetStateAction<"customer" | "supplier" | "else">>
 }) => {
   const [open, setOpen] = useState(false);
   return (
@@ -81,9 +73,9 @@ const SelectSourcerOrClient = ({
                     if (transactionType === "إرجاع") {
                       return true;
                     } else if (transactionType === "شراء") {
-                      return element.type === "sourcer";
+                      return element.entity_type === "supplier" || element.entity_type === "else";
                     } else {
-                      return element.type === "client";
+                      return element.entity_type === "customer" || element.entity_type === "else";
                     }
                   })
                   ?.map((item: sourcerOrClientDataType, key: number) => (
@@ -91,6 +83,7 @@ const SelectSourcerOrClient = ({
                       key={key}
                       onSelect={() => {
                         setSourcerOrClient(item);
+                        setEntity_type(item.entity_type)
                         setOpen(false);
                       }}
                     >

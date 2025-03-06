@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { fetchInventoryList } from "@/constant/Category.info";
 import { fetchCustomersAndSuppliersList } from "@/constant/Comon.info";
 import { fetchEmployeesList } from "@/constant/Employee.info";
@@ -24,7 +25,7 @@ export interface sourcerOrClientDataType {
   name: string;
   entity_type: "customer" | "supplier" | "else";
 }
-const UseTransAction = () => {
+const UseUpdateTransAction = () => {
   // بيع , شراء , إرجاع
   const [transactionType, setTransactionType] = useState<string>("بيع");
   const [sourcerOrClientDetails, setSourcerOrClientDetails] = useState<{
@@ -32,6 +33,7 @@ const UseTransAction = () => {
     type: string;
   }>({ id: 0, type: "none" });
   const [products, setProducts] = useState<productsDataType[]>([]);
+  const [backUpProducts, setBackUpProducts] = useState<productsDataType[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [employee, setEmployee] = useState<employeeDataType | null>(null);
   const [paymentEmployee, setPaymentEmployee] = useState<number>(0);
@@ -97,7 +99,7 @@ const UseTransAction = () => {
     }, 0);
   }, [products]);
 
-  const handleSubmitData = async () => {
+  const handleSubmitData = async (transactionId: number) => {
     try {
       const userId = localStorage.getItem("id");
       if (!userId) throw new Error("⚠️ لم يتم العثور على معرف المستخدم.");
@@ -117,64 +119,103 @@ const UseTransAction = () => {
         }
       }
 
-      const result = await (
+      // ✅ تحديث المعاملة إذا كانت موجودة
+      await (
         await db
       ).execute(
-        `INSERT INTO transactions (transaction_type, customer_id, supplier_id, employee_id, total_amount, remaining_amount, payment_status, entity_type, paymentEmployee, created_at, userId) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)`,
+        `UPDATE transactions 
+          SET transaction_type = ?, customer_id = ?, supplier_id = ?, employee_id = ?, total_amount = ?, payment_status = ?, entity_type = ?, paymentEmployee = ?, userId = ?
+          WHERE id = ?`,
         [
           transactionType,
           customerId,
           supplierId,
           employee?.id || null,
           total,
-          0,
           paymentStatus,
           entity_type,
           paymentEmployee,
           userId,
+          transactionId,
         ]
       );
 
-      const newTransactionId = result.lastInsertId;
-
-      for (const item of products) {
-        await (
-          await db
-        ).execute(
-          `INSERT INTO transaction_items (transaction_id, inventory_id, quantity, price, status) 
-           VALUES (?, ?, ?, ?, ?);`,
-          [newTransactionId, item.idDb, item.amount, item.price, item?.type]
-        );
-
-        // ✅ بعد القفل، تحديث البيانات
+      for (const item of backUpProducts) {
         await (
           await db
         ).execute(
           `UPDATE inventory 
-          SET full_quantity = CASE WHEN ? = 'ممتلئ' THEN full_quantity - ? ELSE full_quantity END, 
-          empty_quantity = CASE WHEN ? = 'فارغ' THEN empty_quantity - ? ELSE empty_quantity END
+          SET full_quantity = CASE WHEN ? = 'ممتلئ' THEN full_quantity + ? ELSE full_quantity END, 
+          empty_quantity = CASE WHEN ? = 'فارغ' THEN empty_quantity + ? ELSE empty_quantity END
           WHERE id = ?;`,
           [item.type, item.amount, item.type, item.amount, item.idDb]
         );
       }
-
+      
+      // ✅ حذف العناصر القديمة من المعاملة قبل التحديث
       await (
         await db
-      ).execute(
-        `INSERT INTO payments (transaction_id, amount, payment_method, paid_at) 
-         VALUES (?, ?, ?, NOW());`,
-        [newTransactionId, total, paymentStatus]
-      );
+      )
+        .execute(`DELETE FROM transaction_items WHERE transaction_id = ?;`, [
+          transactionId,
+        ])
+        .then(async () => {
+          // ✅ تحديث أو إدخال عناصر المعاملة
+          for (const item of products) {
+            console.log(
+              "test : ",
+              transactionId,
+              item.idDb,
+              item.amount,
+              item.price,
+              item?.type
+            );
+            await (
+              await db
+            ).execute(
+              `INSERT INTO transaction_items (transaction_id, inventory_id, quantity, price, status) 
+                 VALUES (?, ?, ?, ?, ?);`,
+              [transactionId, item.idDb, item.amount, item.price, item?.type]
+            );
 
-      console.log("✅ تمت إضافة المعاملة بنجاح");
-      handleFinishSaveInvoke(newTransactionId);
-      toast({
-        variant: "default",
-        title: "تمت الإضافة",
-      });
+            // ✅ تحديث المخزون بعد التعديل
+            await (
+              await db
+            ).execute(
+              `UPDATE inventory 
+                SET full_quantity = CASE WHEN ? = 'ممتلئ' THEN full_quantity - ? ELSE full_quantity END, 
+                empty_quantity = CASE WHEN ? = 'فارغ' THEN empty_quantity - ? ELSE empty_quantity END
+                WHERE id = ?;`,
+              [item.type, item.amount, item.type, item.amount, item.idDb]
+            );
+          }
 
-      return newTransactionId;
+          // ✅ تحديث أو إدخال بيانات الدفع
+          await (
+            await db
+          ).execute(
+            `INSERT INTO payments (transaction_id, amount, payment_method, paid_at) 
+               VALUES (?, ?, ?, NOW())
+               ON DUPLICATE KEY UPDATE amount = ?, payment_method = ?;`,
+            [transactionId, total, paymentStatus, total, paymentStatus]
+          );
+
+          console.log("✅ تمت معالجة المعاملة بنجاح");
+          handleFinishSaveInvoke(Number(transactionId));
+          toast({
+            variant: "default",
+            title: transactionId ? "تم التحديث" : "تمت الإضافة",
+          });
+        })
+        .catch((error: any) =>
+          toast({
+            variant: "destructive",
+            title: "مشكلة",
+            description: `${error}` as string,
+          })
+        );
+
+      return transactionId;
     } catch (error) {
       console.error("⚠️ خطأ أثناء تنفيذ المعاملة:", error);
       await (await db).execute("ROLLBACK");
@@ -188,21 +229,12 @@ const UseTransAction = () => {
       return null;
     }
   };
+
   const handleFinishSaveInvoke = (newTransactionId: number) => {
     setNewTransactionIdState(newTransactionId);
     setStateInvoke(true);
   };
-  const handleRefresh = () => {
-    setNewTransactionIdState(0);
-    setStateInvoke(false);
-    setEmployee(null);
-    setPaymentEmployee(0);
-    setSourcerOrClient(null);
-    setEntity_type("else");
-    setPaymentStatus("نقدي");
-    setSourcerOrClientDetails({ id: 0, type: "none" });
-    setProducts([]);
-  };
+
   return {
     transactionType,
     setTransactionType,
@@ -236,9 +268,10 @@ const UseTransAction = () => {
 
     handleSubmitData,
 
+    setNewTransactionIdState,
     newTransactionIdState,
 
-    handleRefresh,
+    setBackUpProducts,
   };
 };
-export default UseTransAction;
+export default UseUpdateTransAction;

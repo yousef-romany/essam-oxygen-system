@@ -21,25 +21,20 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { employeeDataType } from "@/hooks/UseTransAction";
 
-const data = [
-  {
-    id: 1,
-    name: "yousef",
-    number: "01282066148",
-  },
-];
 
 const EmployeeProcessTransAction = ({
   employee,
   setEmployee,
   paymentEmployee,
   setPaymentEmployee,
+  data,
 }: {
   employee?: employeeDataType | null;
   setEmployee?: Dispatch<SetStateAction<employeeDataType | null>> | any;
 
   paymentEmployee: number;
   setPaymentEmployee: Dispatch<SetStateAction<number>>;
+  data: any[]
 }) => {
   const [open, setOpen] = useState(false);
   return (
