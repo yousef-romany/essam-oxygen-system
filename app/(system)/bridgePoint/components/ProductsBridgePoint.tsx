@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { Plus, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -67,7 +68,6 @@ const ProductsBridgePoint = ({
                       <Input
                         type="number"
                         placeholder="ادخل كميه"
-                        defaultValue={0}
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
                       />
@@ -91,7 +91,6 @@ const ProductsBridgePoint = ({
                       <Input
                         type="number"
                         placeholder="أدخل سعر"
-                        defaultValue={0}
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
                       />
@@ -115,7 +114,6 @@ const ProductsBridgePoint = ({
                       <Input
                         type="number"
                         placeholder="أدخل سعر"
-                        defaultValue={0}
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
                       />
