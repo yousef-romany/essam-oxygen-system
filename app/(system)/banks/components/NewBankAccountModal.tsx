@@ -38,6 +38,8 @@ export function NewBankAccountModal({
     balance: 0,
   });
 
+   
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -134,7 +136,7 @@ export function NewBankAccountModal({
               required
             />
           </div>
-          <Button type="submit">إضافة الحساب</Button>
+          <Button type="submit"  >إضافة الحساب</Button>
         </form>
       </DialogContent>
     </Dialog>

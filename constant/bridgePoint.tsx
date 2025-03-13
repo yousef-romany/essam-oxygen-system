@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// import ShowInvokesBridgePoint from "@/app/(dashboardLayout)/bridgePoint/components/ShowInvokesBridgePoint";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,18 +12,6 @@ import db from "@/lib/db";
 import { CaretSortIcon, DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { ColumnDef } from "@tanstack/react-table";
 
-/*
-1- name client => clientName
-2- name source => sourceName
-3- date => date
-4- catagory name => catagoryName
-5- catagory price => catagoryPrice
-6- catagory quantity => catagoryQuantity
-7- catagory total => catagoryTotal
-8- number invoke => invokeNumber
-9- name driver => driverName
-10- number car => carNumber
-*/
 export interface FormValuesBridagePoint {
   clientName: string;
   sourceName: string;
@@ -135,7 +122,7 @@ export const columns: ColumnDef<FormValuesBridagePoint>[] = [
         </div>
       );
     },
-    
+
     filterFn: "equals",
   },
   {
@@ -165,9 +152,7 @@ export const columns: ColumnDef<FormValuesBridagePoint>[] = [
     header: () => <div className="capitalize text-center">صافى ربح</div>,
     cell: ({ row }) => {
       return (
-        <div className="capitalize text-center">
-          {row.getValue("total")}
-        </div>
+        <div className="capitalize text-center">{row.getValue("total")}</div>
       );
     },
   },
@@ -198,7 +183,6 @@ export const columns: ColumnDef<FormValuesBridagePoint>[] = [
     enableHiding: false,
     cell: ({ row }) => {
       const data: any = row.original;
-      const deleteRole = localStorage.getItem("delete");
       return (
         <DropdownMenu dir="rtl">
           <DropdownMenuTrigger asChild>
@@ -210,14 +194,11 @@ export const columns: ColumnDef<FormValuesBridagePoint>[] = [
           <DropdownMenuContent align="start">
             <DropdownMenuLabel>أحداث</DropdownMenuLabel>
 
-            {/* <ShowInvokesBridgePoint idInvoke={data?.id} taxs={data?.taxs} /> */}
-
             <DropdownMenuSeparator />
             <Button
               className="w-full"
               variant={"destructive"}
               onClick={() => handleDeleteBridgePoint(data?.id)}
-              disabled={deleteRole == "false" ? true : false}
             >
               حذف
             </Button>
@@ -230,38 +211,41 @@ export const columns: ColumnDef<FormValuesBridagePoint>[] = [
 
 const handleDeleteBridgePoint = async (id: number) => {
   (await db)
-  .execute("DELETE FROM invokesbridgepoint WHERE id = ?;", [id])
-  .then(() => {
-    toast({
-      variant: "default",
-      title: "تم 🔐",
-      description: "تم حذف",
+    .execute("DELETE FROM invokesbridgepoint WHERE id = ?;", [id])
+    .then(() => {
+      toast({
+        variant: "default",
+        title: "تم 🔐",
+        description: "تم حذف",
+      });
+    })
+    .catch((error: any) => {
+      console.log(error);
+      if (
+        error.trim() ==
+        "error returned from database: 1451 (23000): Cannot delete or update a parent row: a foreign key constraint fails (`monkanastasy`.`buy_sale`, CONSTRAINT `fk_child_to_parent` FOREIGN KEY (`idCatagory`) REFERENCES `catagorys` (`id`) ON UPDATE CASCADE)".trim()
+      ) {
+        toast({
+          variant: "destructive",
+          title: "خطئ",
+          description: "لا يمكن حذف هذا العنصر لان هذا العنصر مستخدم فى فواتير",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "خطئ",
+          description: error,
+        });
+      }
     });
-  })
-  .catch((error: any) => {
-    console.log(error);
-    if (
-      error.trim() ==
-      "error returned from database: 1451 (23000): Cannot delete or update a parent row: a foreign key constraint fails (`monkanastasy`.`buy_sale`, CONSTRAINT `fk_child_to_parent` FOREIGN KEY (`idCatagory`) REFERENCES `catagorys` (`id`) ON UPDATE CASCADE)".trim()
-    ) {
-      toast({
-        variant: "destructive",
-        title: "خطئ",
-        description: "لا يمكن حذف هذا العنصر لان هذا العنصر مستخدم فى فواتير",
-      });
-    } else {
-      toast({
-        variant: "destructive",
-        title: "خطئ",
-        description: error,
-      });
-    }
-  });
-}
+};
 
 export const fetchInvokeDetailsOneBridgePoint = async (id: number) => {
-  const row = (await db).select(`
+  const row = (await db).select(
+    `
   SELECT * FROM productsbridgepoint WHERE idInvoke = ?
-  `, [id]);
+  `,
+    [id]
+  );
   return row;
-} 
+};

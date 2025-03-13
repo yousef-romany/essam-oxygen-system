@@ -28,7 +28,9 @@ import { toast } from "@/hooks/use-toast";
 type Permit = {
   id: string;
   type: "supply" | "expense" | "service";
+  entity_type: string;
   customerORSupplierId: number;
+  entity_id: number;
   customerORSupplierType: string;
   amount: number;
   date: string;
@@ -45,6 +47,9 @@ export function NewPermitModal({ isOpen, onClose }: NewPermitModalProps) {
     type: "expense",
     customerORSupplierId: 0,
     customerORSupplierType: "else",
+
+    entity_id: 0,
+    entity_type: "else",
     amount: 0,
     date: "",
     description: "",
@@ -54,6 +59,7 @@ export function NewPermitModal({ isOpen, onClose }: NewPermitModalProps) {
     e.preventDefault();
     // Here you would typically send the data to your backend
 
+    console.log(newPermit);
     const {
       type,
       customerORSupplierId,
@@ -155,7 +161,6 @@ export function NewPermitModal({ isOpen, onClose }: NewPermitModalProps) {
             <SelectCustomerOrSupplierOrEmployee
               setNewPermit={setNewPermit}
               newPermit={newPermit}
-              editingTransaction={undefined}
             />
           </div>
 

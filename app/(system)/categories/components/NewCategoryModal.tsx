@@ -18,6 +18,7 @@ import { toast } from "@/hooks/use-toast";
 type Category = {
   id: string;
   name: string;
+  price: number;
   initialEmptyStock: number;
   initialFullStock: number;
 };
@@ -30,6 +31,7 @@ type NewCategoryModalProps = {
 export function NewCategoryModal({ isOpen, onClose }: NewCategoryModalProps) {
   const [newCategory, setNewCategory] = useState<Partial<Category>>({
     name: "",
+    price: 0,
     initialEmptyStock: 0,
     initialFullStock: 0,
   });
@@ -42,6 +44,7 @@ export function NewCategoryModal({ isOpen, onClose }: NewCategoryModalProps) {
       name,
       initialEmptyStock,
       initialFullStock,
+      price
       // Optionally, userId might come from another source (e.g., the logged-in user)
     } = newCategory;
 
@@ -52,9 +55,9 @@ export function NewCategoryModal({ isOpen, onClose }: NewCategoryModalProps) {
       // Use prepared statement placeholders for security
       const query = `
         INSERT INTO inventory 
-          (name, full_quantity, empty_quantity, userId, created_at)
+          (name, full_quantity, empty_quantity, price, userId, created_at)
         VALUES 
-          (?, ?, ?, ?, ?);
+          (?, ?, ?, ?, ?, ?);
       `;
 
       // Map the values in the correct order
@@ -62,6 +65,7 @@ export function NewCategoryModal({ isOpen, onClose }: NewCategoryModalProps) {
         name,
         initialFullStock,
         initialEmptyStock,
+        price || 0,
         userId,
         Date.now(),
       ];
@@ -105,6 +109,21 @@ export function NewCategoryModal({ isOpen, onClose }: NewCategoryModalProps) {
               value={newCategory.name}
               onChange={(e) =>
                 setNewCategory({ ...newCategory, name: e.target.value })
+              }
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="price">سعر</Label>
+            <Input
+              id="price"
+              type="number"
+              value={newCategory.price}
+              onChange={(e) =>
+                setNewCategory({
+                  ...newCategory,
+                  price: Number(e.target.value),
+                })
               }
               required
             />

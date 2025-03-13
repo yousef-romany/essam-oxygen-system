@@ -53,6 +53,7 @@ const UpdateTransAction = ({ transaction }: any) => {
     customersANDSuppliersList,
     employeeList,
     categoriesList,
+    setProductsBackUp,
     // ------- End data ------
     // ------- Start state of POS Invokes ------
     // ------- End state of POS Invokes ------
@@ -66,6 +67,7 @@ const UpdateTransAction = ({ transaction }: any) => {
   } = UseUpdateTransAction();
 
   useEffect(() => {
+    console.log(transaction);
     handleUndo();
   }, [transaction]);
 
@@ -76,9 +78,13 @@ const UpdateTransAction = ({ transaction }: any) => {
     setSourcerOrClient(
       transaction.customer ? transaction.customer : transaction.supplier
     );
-    setEntity_type("else");
+    setEntity_type(transaction.entity_type);
     setPaymentStatus(transaction.payment_status);
+
     setProducts(transaction.items);
+
+    setProductsBackUp(transaction.items);
+
     setTransactionType(transaction.transaction_type);
     setPaymentEmployee(transaction.paymentEmployee);
     setBackUpProducts(transaction.items);
@@ -135,6 +141,7 @@ const UpdateTransAction = ({ transaction }: any) => {
               data={categoriesList.data}
               products={products}
               setProducts={setProducts}
+              transactionType={transactionType}
             />
           </div>
 
@@ -146,6 +153,7 @@ const UpdateTransAction = ({ transaction }: any) => {
               handleDelete={handleDelete}
               handleEdit={handleEdit}
               handleEditeType={handleEditeType}
+              transactionType={transactionType}
             />
           </div>
 
@@ -197,6 +205,7 @@ const UpdateTransAction = ({ transaction }: any) => {
           employee={employee}
           newTransactionIdState={newTransactionIdState}
           total={total}
+          userId={transaction.userId}
         />
       </div>
     </Sheet>

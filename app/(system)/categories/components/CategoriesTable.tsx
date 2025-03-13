@@ -46,6 +46,7 @@ type Category = {
   name: string;
   full_quantity: number;
   empty_quantity: number;
+  price: number;
 };
 
 export function CategoriesTable() {
@@ -68,6 +69,10 @@ export function CategoriesTable() {
           </Button>
         );
       },
+    },
+    {
+      accessorKey: "price",
+      header: "سعر",
     },
     {
       accessorKey: "empty_quantity",
@@ -136,7 +141,7 @@ export function CategoriesTable() {
     handleDeleteInventory(categoryId);
 
   const handleUpdateCategory = async (updatedCategory: Category) => {
-    const { id, name, full_quantity, empty_quantity } = updatedCategory;
+    const { id, name, full_quantity, empty_quantity, price } = updatedCategory;
 
     const userId = localStorage.getItem("id");
 
@@ -146,7 +151,7 @@ export function CategoriesTable() {
     try {
       const query = `
       UPDATE inventory
-      SET name = ?, empty_quantity = ?, full_quantity = ?, userId = ?, created_at = ?
+      SET name = ?, empty_quantity = ?, full_quantity = ?, price = ?, userId = ?, created_at = ?
       WHERE id = ?;
     `;
 
@@ -154,6 +159,7 @@ export function CategoriesTable() {
         name,
         empty_quantity,
         full_quantity,
+        price,
         userId,
         createdAt,
         id,

@@ -92,6 +92,13 @@ const navItems = [
     href: "/reports",
     icon: FileDown,
   },
+  
+  {
+    featureName: "التقارير سريعه",
+    dbName: "fastReport",
+    href: "/fastReport",
+    icon: FileDown,
+  },
   {
     featureName: "الأسمنت",
     dbName: "bridgePoint",

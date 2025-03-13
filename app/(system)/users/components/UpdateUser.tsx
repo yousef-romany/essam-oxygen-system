@@ -58,7 +58,6 @@ const UpdateUser = ({ id, userName, password, date, role }: userDataType) => {
         console.log(error);
       });
   };
-  const updateRole = localStorage.getItem("update");
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -129,7 +128,6 @@ const UpdateUser = ({ id, userName, password, date, role }: userDataType) => {
           <DialogFooter dir="rtl" className="flex !items-start">
             <Button
               type="submit"
-              disabled={updateRole == "false" ? true : false}
             >
               حفظ
             </Button>

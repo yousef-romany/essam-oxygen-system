@@ -30,10 +30,12 @@ const SelectProducts = ({
   setProducts,
   products,
   data,
+  transactionType
 }: {
   setProducts: Dispatch<SetStateAction<productsDataType | null>> | any;
   products: productsDataType[];
   data: any[];
+  transactionType: string
 }) => {
   const [open, setOpen] = useState<boolean>(false);
   const [value, setValue] = useState<string>("");
@@ -74,7 +76,7 @@ const SelectProducts = ({
             title: objectProduct?.name,
             price: Number(objectProduct?.price),
             amount: 1,
-            type: "ممتلئ",
+            type: transactionType == "بيع" ? "ممتلئ" : transactionType == "شراء" ? "فارغ" : "ممتلئ",
           },
         ];
       });

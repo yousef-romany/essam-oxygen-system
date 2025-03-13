@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
-import "./globals.css";
 import type React from "react";
 import { ThemeProvider } from "./NextThemesProvider";
 import { Toaster } from "@/components/ui/toaster";
+import "./globals.css";
 
 const cairo = Cairo({ subsets: ["arabic"] });
 

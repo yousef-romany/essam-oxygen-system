@@ -47,6 +47,8 @@ export function EditBankAccountModal({
     onClose();
   };
 
+   
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
@@ -94,7 +96,7 @@ export function EditBankAccountModal({
               required
             />
           </div>
-          <Button type="submit">تحديث الحساب</Button>
+          <Button type="submit"  >تحديث الحساب</Button>
         </form>
       </DialogContent>
     </Dialog>

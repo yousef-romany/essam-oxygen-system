@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+"use client";
 import { memo } from "react";
 import { formatDate } from "@/lib/formatDate";
 import logoCompany from "@/public/logoCompany.jpg";
 import Barcode from "react-barcode";
 import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
+import { fetchListUsers, userDataType } from "@/constant/User.info";
 
 const POSInvoke = ({
   products,
@@ -12,7 +15,14 @@ const POSInvoke = ({
   employee,
   newTransactionIdState,
   total,
+  userId,
 }: any) => {
+  const { data } = useQuery<{ data: userDataType[] }, Error>({
+    queryKey: ["fetchUsersList"],
+    queryFn: fetchListUsers,
+    refetchInterval: 1500,
+  });
+  console.log(data);
   return (
     <div className="w-full p-4 font-mono text-sm" dir="rtl">
       {/* Header */}
@@ -22,7 +32,6 @@ const POSInvoke = ({
           alt={"logo company"}
           className="!w-full !h-[100px]"
           priority
-
         />
         <h2 className="text-lg text-gray-600">{"شركه العالميه للأكسجين"}</h2>
       </div>
@@ -52,7 +61,8 @@ const POSInvoke = ({
         <div className="flex justify-between flex-wrap">
           <span className="text-gray-600">محرر الفاتوره :</span>
           <span className="text-gray-600">
-            {/* {userId??.data??.at(-1)??.userName} */}
+            {Array.isArray(data) &&
+              data?.find((element: any) => element.id == userId)?.userName}
           </span>
         </div>
         <div className="flex justify-between flex-wrap">

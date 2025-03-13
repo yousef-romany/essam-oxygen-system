@@ -33,6 +33,7 @@ const UseUpdateTransAction = () => {
     type: string;
   }>({ id: 0, type: "none" });
   const [products, setProducts] = useState<productsDataType[]>([]);
+  const [productsBackUp, setProductsBackUp] = useState<productsDataType[]>([]);
   const [backUpProducts, setBackUpProducts] = useState<productsDataType[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [employee, setEmployee] = useState<employeeDataType | null>(null);
@@ -107,19 +108,32 @@ const UseUpdateTransAction = () => {
       let customerId: number | null = null;
       let supplierId: number | null = null;
 
-      if (transactionType === "بيع") {
+      if (transactionType == "بيع") {
         customerId = sourcerOrClient?.id || null;
-      } else if (transactionType === "شراء") {
+      } else if (transactionType == "شراء") {
         supplierId = sourcerOrClient?.id || null;
-      } else if (transactionType === "إرجاع") {
-        if (entity_type === "customer") {
+      } else if (transactionType == "إرجاع") {
+        if (entity_type == "customer") {
           customerId = sourcerOrClient?.id || null;
-        } else if (entity_type === "supplier") {
+        } else if (entity_type == "supplier") {
+          supplierId = sourcerOrClient?.id || null;
+        } else {
+          customerId = sourcerOrClient?.id || null;
           supplierId = sourcerOrClient?.id || null;
         }
       }
 
-      // ✅ تحديث المعاملة إذا كانت موجودة
+      console.log(
+        "mena say : ",
+        entity_type,
+        sourcerOrClient,
+        "customerId : ",
+        customerId,
+        "supplierId : ",
+        supplierId
+      );
+
+      // ✅ تحديث المعاملة إذا كانت موجودةx
       await (
         await db
       ).execute(
@@ -128,8 +142,8 @@ const UseUpdateTransAction = () => {
           WHERE id = ?`,
         [
           transactionType,
-          customerId,
-          supplierId,
+          entity_type ? customerId : null,
+          entity_type ? supplierId : null,
           employee?.id || null,
           total,
           paymentStatus,
@@ -141,17 +155,29 @@ const UseUpdateTransAction = () => {
       );
 
       for (const item of backUpProducts) {
-        await (
-          await db
-        ).execute(
-          `UPDATE inventory 
-          SET full_quantity = CASE WHEN ? = 'ممتلئ' THEN full_quantity + ? ELSE full_quantity END, 
-          empty_quantity = CASE WHEN ? = 'فارغ' THEN empty_quantity + ? ELSE empty_quantity END
-          WHERE id = ?;`,
-          [item.type, item.amount, item.type, item.amount, item.idDb]
-        );
+        if(transactionType == "إرجاع") {
+          await (
+            await db
+          ).execute(
+            `UPDATE inventory 
+                SET full_quantity = CASE WHEN ? = 'ممتلئ' THEN full_quantity - ? ELSE full_quantity END, 
+                empty_quantity = CASE WHEN ? = 'فارغ' THEN empty_quantity - ? ELSE empty_quantity END
+                WHERE id = ?;`,
+            [item.type, item.amount, item.type, item.amount, item.idDb]
+          );
+        } else {
+          await (
+            await db
+          ).execute(
+            `UPDATE inventory 
+                SET full_quantity = CASE WHEN ? = 'ممتلئ' THEN full_quantity + ? ELSE full_quantity END, 
+                empty_quantity = CASE WHEN ? = 'فارغ' THEN empty_quantity + ? ELSE empty_quantity END
+                WHERE id = ?;`,
+            [item.type, item.amount, item.type, item.amount, item.idDb]
+          );
+        }
       }
-      
+
       // ✅ حذف العناصر القديمة من المعاملة قبل التحديث
       await (
         await db
@@ -179,15 +205,27 @@ const UseUpdateTransAction = () => {
             );
 
             // ✅ تحديث المخزون بعد التعديل
-            await (
-              await db
-            ).execute(
-              `UPDATE inventory 
-                SET full_quantity = CASE WHEN ? = 'ممتلئ' THEN full_quantity - ? ELSE full_quantity END, 
-                empty_quantity = CASE WHEN ? = 'فارغ' THEN empty_quantity - ? ELSE empty_quantity END
-                WHERE id = ?;`,
-              [item.type, item.amount, item.type, item.amount, item.idDb]
-            );
+            if (transactionType == "إرجاع") {
+              await (
+                await db
+              ).execute(
+                `UPDATE inventory 
+                  SET full_quantity = CASE WHEN ? = 'ممتلئ' THEN full_quantity + ? ELSE full_quantity END, 
+                  empty_quantity = CASE WHEN ? = 'فارغ' THEN empty_quantity + ? ELSE empty_quantity END
+                  WHERE id = ?;`,
+                [item.type, item.amount, item.type, item.amount, item.idDb]
+              );
+            } else {
+              await (
+                await db
+              ).execute(
+                `UPDATE inventory 
+                  SET full_quantity = CASE WHEN ? = 'ممتلئ' THEN full_quantity - ? ELSE full_quantity END, 
+                  empty_quantity = CASE WHEN ? = 'فارغ' THEN empty_quantity - ? ELSE empty_quantity END
+                  WHERE id = ?;`,
+                [item.type, item.amount, item.type, item.amount, item.idDb]
+              );
+            }
           }
 
           // ✅ تحديث أو إدخال بيانات الدفع
@@ -272,6 +310,7 @@ const UseUpdateTransAction = () => {
     newTransactionIdState,
 
     setBackUpProducts,
+    setProductsBackUp,
   };
 };
 export default UseUpdateTransAction;

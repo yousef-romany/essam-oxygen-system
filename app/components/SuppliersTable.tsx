@@ -28,6 +28,7 @@ import {
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import { EditSupplierModal } from "../(system)/suppliers/components/EditSupplierModal";
 import db from "@/lib/db";
+import HoverCardCustomer from "@/constant/HoverCardCustomer";
 
 interface Supplier {
   id: number;
@@ -56,16 +57,15 @@ export function SuppliersTable() {
       header: "رقم هاتف",
     },
     {
-      accessorKey: "sentEmpty",
-      header: "الأسطوانات الفارغة المرسلة",
+      accessorKey: "details",
+      header: "اسطوانات المعلقة",
+      cell: ({ row }) => {
+        return <HoverCardCustomer typeCall={"supplier"} row={row} />;
+      },
     },
     {
-      accessorKey: "receivedFull",
-      header: "الأسطوانات الممتلئة المستلمة",
-    },
-    {
-      accessorKey: "pending",
-      header: "المعلق",
+      accessorKey: "final_balance",
+      header: "الرصيد النهائي للعميل",
     },
     {
       id: "actions",

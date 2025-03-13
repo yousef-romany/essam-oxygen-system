@@ -3,13 +3,10 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  roleDataType,
-  userDataForm,
-} from "@/constant/User.info";
+import { roleDataType, userDataForm } from "@/constant/User.info";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
+// import { Badge } from "@/components/ui/badge";
+// import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import db from "@/lib/db";
 
@@ -24,19 +21,11 @@ const AddNewUserForm = ({
     formState: { errors },
   } = useForm<userDataForm>();
   const onSubmit: SubmitHandler<userDataForm> = async (data: userDataForm) => {
-    if (
-      roleState.some((user: roleDataType) => user.value) &&
-      userEffect.some((user: roleDataType) => user.value)
-    ) {
+    if (roleState.some((user: roleDataType) => user.value)) {
       (await db)
         .execute(
           "INSERT INTO users (userName, password, role, date) VALUES (?, ?, ?, ?)",
-          [
-            data.userName,
-            data.password,
-            [...roleState, ...userEffect],
-            Date.now(),
-          ]
+          [data.userName, data.password, [...roleState], Date.now()]
         )
         .then(() => {
           sheetCollapse(false);
@@ -77,13 +66,14 @@ const AddNewUserForm = ({
     { value: false, featureName: "بنوك", dbName: "banks" },
     { value: false, featureName: "المعاملات", dbName: "transactions" },
     { value: false, featureName: "التقارير عملاء و موردين", dbName: "reports" },
+    { value: false, featureName: "التقارير سريعه", dbName: "fastReport" },
     { value: false, featureName: "الأسمنت", dbName: "bridgePoint" },
   ]);
-  const [userEffect, setUserEffect] = useState<roleDataType[]>([
-    { value: false, featureName: "تعديل", dbName: "update" },
-    { value: false, featureName: "أضافه", dbName: "add" },
-    { value: false, featureName: "حذف", dbName: "delete" },
-  ]);
+  // const [userEffect, setUserEffect] = useState<roleDataType[]>([
+  //   { value: false, featureName: "تعديل", dbName: "update" },
+  //   { value: false, featureName: "أضافه", dbName: "add" },
+  //   { value: false, featureName: "حذف", dbName: "delete" },
+  // ]);
   const handleCheckboxChange = (dbName: string, checked: boolean) => {
     setRoleState((prevRoleState) =>
       prevRoleState.map((item) =>
@@ -91,13 +81,13 @@ const AddNewUserForm = ({
       )
     );
   };
-  const handleCheckboxEffectUserChange = (dbName: string, checked: boolean) => {
-    setUserEffect((prevRoleState) =>
-      prevRoleState.map((item) =>
-        item.dbName === dbName ? { ...item, value: checked } : item
-      )
-    );
-  };
+  // const handleCheckboxEffectUserChange = (dbName: string, checked: boolean) => {
+  //   setUserEffect((prevRoleState) =>
+  //     prevRoleState.map((item) =>
+  //       item.dbName === dbName ? { ...item, value: checked } : item
+  //     )
+  //   );
+  // };
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -147,7 +137,7 @@ const AddNewUserForm = ({
             </label>
           </div>
         ))}
-        <Separator />
+        {/* <Separator />
         <Badge variant={"destructive"}>تحذير كل صفحات له نفس تأثير</Badge>
         <div className="w-full flex flex-wrap gap-5">
           {userEffect.map((item: roleDataType, key: number) => (
@@ -167,7 +157,7 @@ const AddNewUserForm = ({
               </label>
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
 
       {errors.userName && (

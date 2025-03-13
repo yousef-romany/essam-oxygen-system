@@ -1,39 +1,50 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 type Category = {
   id: number;
   name: string;
   full_quantity: number;
   empty_quantity: number;
+  price: number;
 };
 
 type EditCategoryModalProps = {
-  isOpen: boolean
-  onClose: () => void
-  category: Category
-  onUpdateCategory: (category: Category) => void
-}
+  isOpen: boolean;
+  onClose: () => void;
+  category: Category;
+  onUpdateCategory: (category: Category) => void;
+};
 
-export function EditCategoryModal({ isOpen, onClose, category, onUpdateCategory }: EditCategoryModalProps) {
-  const [editedCategory, setEditedCategory] = useState<Category>(category)
+export function EditCategoryModal({
+  isOpen,
+  onClose,
+  category,
+  onUpdateCategory,
+}: EditCategoryModalProps) {
+  const [editedCategory, setEditedCategory] = useState<Category>(category);
 
   useEffect(() => {
-    setEditedCategory(category)
-  }, [category])
+    setEditedCategory(category);
+  }, [category]);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onUpdateCategory(editedCategory)
-    onClose()
-  }
+    e.preventDefault();
+    onUpdateCategory(editedCategory);
+    onClose();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -47,7 +58,24 @@ export function EditCategoryModal({ isOpen, onClose, category, onUpdateCategory 
             <Input
               id="name"
               value={editedCategory.name}
-              onChange={(e) => setEditedCategory({ ...editedCategory, name: e.target.value })}
+              onChange={(e) =>
+                setEditedCategory({ ...editedCategory, name: e.target.value })
+              }
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="price">سعر</Label>
+            <Input
+              id="price"
+              type="number"
+              value={editedCategory.price}
+              onChange={(e) =>
+                setEditedCategory({
+                  ...editedCategory,
+                  price: Number(e.target.value),
+                })
+              }
               required
             />
           </div>
@@ -57,7 +85,12 @@ export function EditCategoryModal({ isOpen, onClose, category, onUpdateCategory 
               id="empty_quantity"
               type="number"
               value={editedCategory.empty_quantity}
-              onChange={(e) => setEditedCategory({ ...editedCategory, empty_quantity: Number(e.target.value) })}
+              onChange={(e) =>
+                setEditedCategory({
+                  ...editedCategory,
+                  empty_quantity: Number(e.target.value),
+                })
+              }
               required
             />
           </div>
@@ -67,7 +100,12 @@ export function EditCategoryModal({ isOpen, onClose, category, onUpdateCategory 
               id="full_quantity"
               type="number"
               value={editedCategory.full_quantity}
-              onChange={(e) => setEditedCategory({ ...editedCategory, full_quantity: Number(e.target.value) })}
+              onChange={(e) =>
+                setEditedCategory({
+                  ...editedCategory,
+                  full_quantity: Number(e.target.value),
+                })
+              }
               required
             />
           </div>
@@ -75,6 +113,5 @@ export function EditCategoryModal({ isOpen, onClose, category, onUpdateCategory 
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

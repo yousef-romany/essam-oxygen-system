@@ -18,7 +18,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useQuery } from "@tanstack/react-query";
-import { fetchCustomersAndSuppliersList } from "@/constant/Comon.info";
+import { fetchCustomersAndSuppliersForREPORTList } from "@/constant/Comon.info";
 
 type Transaction = {
   id: string;
@@ -31,35 +31,29 @@ type Transaction = {
   customerORSupplierType: string;
 };
 
-const SelectCustomerOrSupplier = ({
-  setNewTransaction,
-  setEditingTransaction,
-  newTransaction,
-  editingTransaction,
+const SelectCustomerOrSupplierReport = ({
+  selectedCustomer,
+  setSelectedCustomer,
 }: {
-  setNewTransaction: Dispatch<SetStateAction<Transaction>> | any;
-  setEditingTransaction?: Dispatch<SetStateAction<Transaction>> | any;
-  newTransaction: Transaction | any;
-  editingTransaction: Transaction | any;
+  selectedCustomer: Transaction | any;
+  setSelectedCustomer: Dispatch<SetStateAction<Transaction>> | any;
 }) => {
   const { data = [] } = useQuery({
-    queryKey: ["fetchCustomersAndSuppliersList"],
-    queryFn: fetchCustomersAndSuppliersList,
+    queryKey: ["fetchCustomersAndSuppliersForREPORTList"],
+    queryFn: fetchCustomersAndSuppliersForREPORTList,
     refetchInterval: 2000,
   });
 
   const [open, setOpen] = useState(false);
-  const [entity, setEntity] = useState("");
   const [value, setValue] = useState("");
 
-  // تحديث القيمة عند تحميل `editingTransaction`
+  // تحديث القيمة عند تحميل `selectedCustomer`
   useEffect(() => {
-    if (editingTransaction && editingTransaction.customerORSupplierId) {
-      setValue(editingTransaction.customerORSupplierId.toString());
+    if (selectedCustomer && selectedCustomer.customerORSupplierId) {
+      setValue(selectedCustomer.customerORSupplierId.toString());
     } else {
-      setValue(newTransaction.customerORSupplierId.toString());
     }
-  }, [editingTransaction, newTransaction]);
+  }, [selectedCustomer]);
 
   useEffect(() => {
     if (value) {
@@ -72,14 +66,10 @@ const SelectCustomerOrSupplier = ({
       (item: any) => item.id.toString() === value
     );
     if (selectedSource) {
-      if (editingTransaction && setEditingTransaction) {
-        setEditingTransaction((prev: Transaction) => ({
-          ...prev,
-          customerORSupplierId: selectedSource.id,
-          customerORSupplierType: selectedSource.entity_type,
-        }));
+      if (selectedCustomer) {
+        return;
       } else {
-        setNewTransaction((prev: Transaction) => ({
+        setSelectedCustomer((prev: Transaction) => ({
           ...prev,
           customerORSupplierId: selectedSource.id,
           customerORSupplierType: selectedSource.entity_type,
@@ -98,10 +88,7 @@ const SelectCustomerOrSupplier = ({
           className="w-full justify-between"
         >
           {value
-            ? data.find(
-                (item: any) =>
-                  item.id.toString() === value && entity == item.entity_type
-              )?.name
+            ? data.find((item: any) => item.id.toString() === value)?.name
             : "أختر عميل..."}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -117,8 +104,12 @@ const SelectCustomerOrSupplier = ({
                   key={`${key} ${item.entity_type}`}
                   onSelect={() => {
                     setValue(item.id.toString());
-                    setEntity(item.entity_type);
                     setOpen(false);
+                    setSelectedCustomer((prev: Transaction) => ({
+                      ...prev,
+                      customerORSupplierId: item.id,
+                      customerORSupplierType: item.entity_type,
+                    }));
                   }}
                 >
                   {item.entity_type === "supplier" ? "المورد : " : "عميل : "}{" "}
@@ -139,4 +130,4 @@ const SelectCustomerOrSupplier = ({
   );
 };
 
-export default memo(SelectCustomerOrSupplier);
+export default memo(SelectCustomerOrSupplierReport);

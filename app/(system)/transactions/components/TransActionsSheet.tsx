@@ -26,7 +26,7 @@ import SelectProducts from "./SelectProducts";
 import PreviewItemWhenCreateTransaction from "./PreviewItemWhenCreateTransaction";
 import POSInvoke from "@/components/POSInvoke";
 import { useReactToPrint } from "react-to-print";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const TransActionsSheet = () => {
   const {
@@ -63,13 +63,17 @@ const TransActionsSheet = () => {
 
     newTransactionIdState,
 
-    handleRefresh
+    handleRefresh,
   } = UseTransAction();
 
   const posInvokeRef: any = useRef<any>(null);
 
   const handleSubmit = () => handleSubmitData();
+  const [userId, setUserId] = useState<any>(null);
 
+  useEffect(() => {
+    setUserId(localStorage?.getItem("id"));
+  }, []);
   const handlePrintPos = useReactToPrint({ contentRef: posInvokeRef });
   return (
     <Sheet>
@@ -117,11 +121,13 @@ const TransActionsSheet = () => {
               data={categoriesList.data}
               products={products}
               setProducts={setProducts}
+              transactionType={transactionType}
             />
           </div>
 
           <div className="w-full min-h-[400px] max-h-[500px] overflow-y-scroll">
             <PreviewItemWhenCreateTransaction
+              transactionType={transactionType}
               products={products}
               editingId={editingId}
               handleSave={handleSave}
@@ -169,12 +175,12 @@ const TransActionsSheet = () => {
             </Button>
             {stateInvoke && (
               <>
-              <Button onClick={() => handlePrintPos()} variant={"secondary"}>
-                Print
-              </Button>
-              <Button onClick={() => handleRefresh()} variant={"secondary"}>
-                <RefreshCcwIcon />
-              </Button>
+                <Button onClick={() => handlePrintPos()} variant={"secondary"}>
+                  Print
+                </Button>
+                <Button onClick={() => handleRefresh()} variant={"secondary"}>
+                  <RefreshCcwIcon />
+                </Button>
               </>
             )}
           </SheetFooter>
@@ -188,6 +194,7 @@ const TransActionsSheet = () => {
           employee={employee}
           newTransactionIdState={newTransactionIdState}
           total={total}
+          userId={userId}
         />
       </div>
     </Sheet>

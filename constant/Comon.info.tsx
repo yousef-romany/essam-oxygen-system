@@ -27,6 +27,26 @@ export const fetchCustomersAndSuppliersList = async () => {
   return rows;
 };
 
+export const fetchCustomersAndSuppliersForREPORTList = async () => {
+    const rows = (await db).select(`
+          SELECT 
+              id, 
+              name, 
+              'customer' AS entity_type 
+          FROM customers 
+  
+          UNION ALL
+  
+          SELECT 
+              id, 
+              name, 
+              'supplier' AS entity_type 
+          FROM suppliers;
+          `);
+  
+    return rows;
+  };
+
 export const fetchCustomersAndSuppliersListOrEmployee = async () => {
   const rows = (await db).select(`
         SELECT 

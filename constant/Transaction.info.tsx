@@ -77,7 +77,9 @@ export const fetchTransactionsList = async () => {
       // ✅ تأكد من عدم تكرار نفس العنصر
       if (
         row.transaction_item_id &&
-        !transaction.items.some((item: any) => item.id === row.transaction_item_id)
+        !transaction.items.some(
+          (item: any) => item.id === row.transaction_item_id
+        )
       ) {
         transaction.items.push({
           id: row.transaction_item_id,
@@ -92,7 +94,9 @@ export const fetchTransactionsList = async () => {
       // ✅ تأكد من عدم تكرار نفس الدفعة
       if (
         row.payment_id &&
-        !transaction.payments.some((payment: any) => payment.id === row.payment_id)
+        !transaction.payments.some(
+          (payment: any) => payment.id === row.payment_id
+        )
       ) {
         transaction.payments.push({
           id: row.payment_id,
@@ -110,7 +114,10 @@ export const fetchTransactionsList = async () => {
   }
 };
 
-export const handleDeleteTransaction = async (transactionId: number) => {
+export const handleDeleteTransaction = async (
+  transactionId: number,
+  type: string
+) => {
   try {
     if (!transactionId) throw new Error("⚠️ معرف المعاملة غير صالح.");
 
@@ -135,19 +142,35 @@ export const handleDeleteTransaction = async (transactionId: number) => {
         for (const item of rows) {
           console.log(`🔄 تحديث المخزون للمنتج ${item.inventory_id}`);
 
-          (await db).execute(
-            `UPDATE inventory 
-           SET full_quantity = full_quantity + IF(? = 'ممتلئ', ?, 0),
-               empty_quantity = empty_quantity + IF(? = 'فارغ', ?, 0)
-           WHERE id = ?;`,
-            [
-              item.status,
-              item.quantity,
-              item.status,
-              item.quantity,
-              item.inventory_id,
-            ]
-          );
+          if (type == "إرجاع") {
+            (await db).execute(
+              `UPDATE inventory 
+             SET full_quantity = full_quantity - IF(? = 'ممتلئ', ?, 0),
+                 empty_quantity = empty_quantity - IF(? = 'فارغ', ?, 0)
+             WHERE id = ?;`,
+              [
+                item.status,
+                item.quantity,
+                item.status,
+                item.quantity,
+                item.inventory_id,
+              ]
+            );
+          } else {
+            (await db).execute(
+              `UPDATE inventory 
+             SET full_quantity = full_quantity + IF(? = 'ممتلئ', ?, 0),
+                 empty_quantity = empty_quantity + IF(? = 'فارغ', ?, 0)
+             WHERE id = ?;`,
+              [
+                item.status,
+                item.quantity,
+                item.status,
+                item.quantity,
+                item.inventory_id,
+              ]
+            );
+          }
         }
 
         // ✅ 5. حذف المعاملة نفسها

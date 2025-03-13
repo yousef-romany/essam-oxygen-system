@@ -16,7 +16,6 @@ import {
 import { memo } from "react";
 
 const HoverTableCard = ({ row }: any) => {
-  console.log(row.original)
   return (
     <div>
       <HoverCard>

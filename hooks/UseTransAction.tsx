@@ -92,9 +92,11 @@ const UseTransAction = () => {
     setEditingId(id);
   };
   const total = useMemo(() => {
-    return products.reduce((sum: number, product: productsDataType) => {
-      return sum + (product?.price || 0) * (product?.amount || 0);
-    }, 0);
+    if (transactionType !== "إرجاع") {
+      return products.reduce((sum: number, product: productsDataType) => {
+        return sum + (product?.price || 0) * (product?.amount || 0);
+      }, 0);
+    } else return 0;
   }, [products]);
 
   const handleSubmitData = async () => {
@@ -144,19 +146,38 @@ const UseTransAction = () => {
         ).execute(
           `INSERT INTO transaction_items (transaction_id, inventory_id, quantity, price, status) 
            VALUES (?, ?, ?, ?, ?);`,
-          [newTransactionId, item.idDb, item.amount, item.price, item?.type]
+          [
+            newTransactionId,
+            item.idDb,
+            item.amount,
+            transactionType !== "إرجاع" ? item.price : 0,
+            item?.type,
+          ]
         );
 
         // ✅ بعد القفل، تحديث البيانات
-        await (
-          await db
-        ).execute(
-          `UPDATE inventory 
+        if (transactionType == "إرجاع") {
+          console.log("test : ",  transactionType)
+          await (
+            await db
+          ).execute(
+            `UPDATE inventory 
+          SET full_quantity = CASE WHEN ? = 'ممتلئ' THEN full_quantity + ? ELSE full_quantity END, 
+          empty_quantity = CASE WHEN ? = 'فارغ' THEN empty_quantity + ? ELSE empty_quantity END
+          WHERE id = ?;`,
+            [item.type, item.amount, item.type, item.amount, item.idDb]
+          );
+        } else {
+          await (
+            await db
+          ).execute(
+            `UPDATE inventory 
           SET full_quantity = CASE WHEN ? = 'ممتلئ' THEN full_quantity - ? ELSE full_quantity END, 
           empty_quantity = CASE WHEN ? = 'فارغ' THEN empty_quantity - ? ELSE empty_quantity END
           WHERE id = ?;`,
-          [item.type, item.amount, item.type, item.amount, item.idDb]
-        );
+            [item.type, item.amount, item.type, item.amount, item.idDb]
+          );
+        }
       }
 
       await (

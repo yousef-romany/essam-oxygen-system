@@ -87,6 +87,10 @@ export function EmployeesTable() {
       },
     },
     {
+      accessorKey: "final_balance",
+      header: "الرصيد النهائي للموظف ",
+    },
+    {
       id: "actions",
       cell: ({ row }) => {
         const employee = row.original;

@@ -30,6 +30,7 @@ import {
 import { ErrorDisplay } from "@/components/ErrorDisplay";
 import db from "@/lib/db";
 import { EditCustomerModal } from "../(system)/customers/components/EditCustomerModal";
+import HoverCardCustomer from "@/constant/HoverCardCustomer";
 
 interface Customer {
   id: string;
@@ -55,12 +56,19 @@ export function CustomersTable() {
       header: "اسم العميل",
     },
     {
-      accessorKey: "totalBought",
-      header: "إجمالي المشتريات",
+      accessorKey: "phoneNumber",
+      header: "رقم هاتف",
     },
     {
-      accessorKey: "pendingReturns",
-      header: "المرتجعات المعلقة",
+      accessorKey: "details",
+      header: "اسطوانات المعلقة",
+      cell: ({ row }) => {
+        return <HoverCardCustomer typeCall={"customer"} row={row} />;
+      },
+    },
+    {
+      accessorKey: "final_balance",
+      header: "الرصيد النهائي للعميل",
     },
     {
       id: "actions",
@@ -75,9 +83,6 @@ export function CustomersTable() {
               onClick={() => setEditingCustomer(customer)}
             >
               تعديل
-            </Button>
-            <Button variant="outline" size="sm" className="ml-2">
-              تسجيل إرجاع
             </Button>
             <Button
               variant="outline"
@@ -98,8 +103,12 @@ export function CustomersTable() {
   >({
     queryKey: ["fetchCustomersList"],
     queryFn: fetchCustomersList,
-    refetchInterval: 1000,
+    refetchInterval: 2000,
   });
+
+  // console.log(da)
+
+  console.log(data);
 
   const table = useReactTable({
     data: data,

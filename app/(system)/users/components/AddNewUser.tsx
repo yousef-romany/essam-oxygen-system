@@ -16,11 +16,11 @@ import AddNewUserForm from "./AddNewUserForm";
 const AddNewUser = () => {
   const [stateSheet, setStateSheet] = useState(false);
 
-  const addRole = localStorage.getItem("add");
+   
   return (
     <Sheet open={stateSheet} onOpenChange={setStateSheet}>
       <SheetTrigger asChild>
-        <Button variant="outline" disabled={addRole == "false" ? true : false}>
+        <Button variant="outline"  >
           <PlusCircle className="ml-2 h-4 w-4" /> إضافة مستخدم
         </Button>
       </SheetTrigger>

@@ -50,6 +50,7 @@ const SelectCustomerOrSupplierOrEmployee = ({
 
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
+  const [entityType, setEntityType] = useState("");
 
   // تحديث القيمة عند تحميل `editingTransaction`
   useEffect(() => {
@@ -57,7 +58,7 @@ const SelectCustomerOrSupplierOrEmployee = ({
       editingTransaction?.entity_id?.toString() ||
         newPermit?.entity_id?.toString()
     );
-  }, [newPermit, editingTransaction]);
+  }, [editingTransaction]);
 
   useEffect(() => {
     if (value) {
@@ -66,6 +67,7 @@ const SelectCustomerOrSupplierOrEmployee = ({
   }, [value]);
 
   const handleSaveInSource = () => {
+    console.log(value, "test : ");
     const selectedSource = data.find(
       (item: any) => item?.id?.toString() === value
     );
@@ -96,23 +98,23 @@ const SelectCustomerOrSupplierOrEmployee = ({
           className="w-full justify-between"
         >
           {value
-            ? data.find((item: any) => item?.id?.toString() === value)?.name
-            : "أختر عميل..."}
+            ? data.find((item: any) => item?.id?.toString() === value && item.entity_type == entityType)?.name
+            : "أختر..."}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-full p-0">
         <Command>
-          <CommandInput placeholder="أبحث عن عميل..." className="h-9" />
+          <CommandInput placeholder="أبحث عن..." className="h-9" />
           <CommandList>
-            <CommandEmpty>لا يوجد عميل.</CommandEmpty>
+            <CommandEmpty>لا يوجد.</CommandEmpty>
             <CommandGroup>
-              {data.map((item: any) => (
+              {data.map((item: any, key: number) => (
                 <CommandItem
-                  key={item?.id}
-                  value={item?.id?.toString()}
+                  key={`${key} ${item.entity_type}`}
                   onSelect={() => {
                     setValue(item?.id?.toString());
+                    setEntityType(item.entity_type)
                     setOpen(false);
                   }}
                 >

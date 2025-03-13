@@ -1,6 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -19,14 +25,16 @@ const PreviewItemWhenCreateTransaction = ({
   handleSave,
   handleDelete,
   handleEdit,
-  handleEditeType
+  handleEditeType,
+  transactionType,
 }: {
   products: productsDataType[];
   editingId: number | null;
   handleSave: (id: number, field: "price" | "amount", value: string) => void;
   handleDelete: (id: number) => void;
   handleEdit: (id: number) => void;
-  handleEditeType: (id: number, value: string) => void
+  handleEditeType: (id: number, value: string) => void;
+  transactionType: string;
 }) => {
   return (
     <Table>
@@ -45,17 +53,21 @@ const PreviewItemWhenCreateTransaction = ({
             <TableRow className="h-fit" key={product.id}>
               <TableCell className="text-center">{product.title}</TableCell>
               <TableCell className="text-center">
-                {editingId === product.id ? (
-                  <Input
-                    type="number"
-                    defaultValue={product.price}
-                    onBlur={(e) =>
-                      handleSave(product.id, "price", e.target.value)
-                    }
-                    className="text-center"
-                  />
+                {transactionType !== "إرجاع" ? (
+                  editingId === product.id ? (
+                    <Input
+                      type="number"
+                      defaultValue={product.price}
+                      onBlur={(e) =>
+                        handleSave(product.id, "price", e.target.value)
+                      }
+                      className="text-center"
+                    />
+                  ) : (
+                    `${product.price.toFixed(2)} جنيه`
+                  )
                 ) : (
-                  `${product.price.toFixed(2)} جنيه`
+                  "-"
                 )}
               </TableCell>
               <TableCell className="text-center">
@@ -74,13 +86,41 @@ const PreviewItemWhenCreateTransaction = ({
               </TableCell>
               <TableCell className="text-center">
                 {editingId === product.id ? (
-                  <Select dir="rtl" defaultValue={product.type} onValueChange={(value: string) => handleEditeType(product.id, value)}>
+                  <Select
+                    dir="rtl"
+                    defaultValue={product.type}
+                    onValueChange={(value: string) =>
+                      handleEditeType(product.id, value)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="اختر حالة " />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="فارغ">فارغ</SelectItem>
-                      <SelectItem value="ممتلئ">ممتلئ</SelectItem>
+                      <SelectItem
+                        value="فارغ"
+                        disabled={
+                          transactionType == "بيع"
+                            ? true
+                            : transactionType == "إرجاع"
+                            ? false
+                            : false
+                        }
+                      >
+                        فارغ
+                      </SelectItem>
+                      <SelectItem
+                        value="ممتلئ"
+                        disabled={
+                          transactionType == "إرجاع"
+                            ? false
+                            : transactionType !== "بيع"
+                            ? true
+                            : false
+                        }
+                      >
+                        ممتلئ
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 ) : (
@@ -109,7 +149,7 @@ const PreviewItemWhenCreateTransaction = ({
           ))
         ) : (
           <TableRow>
-            <TableCell colSpan={4} className="text-center">
+            <TableCell colSpan={5} className="text-center">
               لايوجد أصناف مضافه .
             </TableCell>
           </TableRow>

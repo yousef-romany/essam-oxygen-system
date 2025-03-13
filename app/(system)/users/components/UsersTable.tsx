@@ -70,7 +70,6 @@ const UsersTable = () => {
       id: "actions",
       cell: ({ row }) => {
         const data = row.original;
-        const deleteRole = localStorage.getItem("delete");
         return (
           <DropdownMenu dir="rtl">
             <DropdownMenuTrigger asChild>
@@ -95,7 +94,6 @@ const UsersTable = () => {
                 onClick={() => handleDeleteUser(data.id)}
                 className="w-full"
                 variant={"destructive"}
-                disabled={deleteRole == "false" ? true : false}
               >
                 حذف
               </Button>

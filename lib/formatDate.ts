@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export function formatDate(timestamp: any) {
     // Convert the timestamp to a Date object
     const date = new Date(parseInt(timestamp, 10));
@@ -9,4 +10,13 @@ export function formatDate(timestamp: any) {
 
     // Format the date as YYYY/MM/DD
     return `${year}/${month}/${day}`;
+}
+
+
+
+export function formatToYearMonth(dateStr: any) {
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // ضمان وجود رقمين
+    return `${year}-${month}`;
 }

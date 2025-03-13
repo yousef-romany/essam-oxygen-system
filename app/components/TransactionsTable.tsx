@@ -65,11 +65,13 @@ export function TransactionsTable() {
       cell: ({ row }: any) => {
         return (
           <div>
-            {row?.original.customer_name
-              ? row?.original["transaction_type"] == "بيع"
-                ? `عميل : ${row?.original.customer_name}`
-                : `مورد : ${row?.original.supplier_name}`
-              : "مجهول"}
+            {row?.original["entity_type"] == "customer"
+              ? ` عميل : ${row?.original?.customer?.name}`
+              : row?.original["entity_type"] == "supplier"
+              ? `مورد : ${row?.original?.supplier?.name}`
+              : row?.original?.customer
+              ? `عميل : ${row?.original?.customer?.name}`
+              : `مورد : ${row?.original?.supplier?.name}`}
           </div>
         );
       },
@@ -95,7 +97,7 @@ export function TransactionsTable() {
       accessorKey: "employee",
       header: "العامل المسؤول",
       cell: ({ row }: any) => {
-        return <div>{row.original?.employee?.name}</div>;
+        return <div>{row.original?.employee?.name || "-"} </div>;
       },
     },
     {
@@ -155,7 +157,12 @@ export function TransactionsTable() {
               <UpdateTransAction transaction={transaction} />
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => handleDeleteTransaction(Number(transaction.id))}
+                onClick={() =>
+                  handleDeleteTransaction(
+                    Number(transaction.id),
+                    transaction.transaction_type
+                  )
+                }
               >
                 حذف
               </DropdownMenuItem>
@@ -171,6 +178,8 @@ export function TransactionsTable() {
     queryFn: async () => await fetchTransactionsList(),
     refetchInterval: 1500,
   });
+
+  console.log(data);
 
   const [transactions, setTransactions] = useState<any[]>([]);
 

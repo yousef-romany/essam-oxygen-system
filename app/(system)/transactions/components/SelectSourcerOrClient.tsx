@@ -25,7 +25,7 @@ const SelectSourcerOrClient = ({
   sourcerOrClient,
   setSourcerOrClient,
   data,
-  setEntity_type
+  setEntity_type,
 }: {
   transactionType: string;
   sourcerOrClient?: sourcerOrClientDataType | null;
@@ -33,7 +33,7 @@ const SelectSourcerOrClient = ({
     | Dispatch<SetStateAction<sourcerOrClientDataType | null>>
     | any;
   data: sourcerOrClientDataType[];
-  setEntity_type: Dispatch<SetStateAction<"customer" | "supplier" | "else">>
+  setEntity_type: Dispatch<SetStateAction<"customer" | "supplier" | "else">>;
 }) => {
   const [open, setOpen] = useState(false);
   return (
@@ -54,10 +54,27 @@ const SelectSourcerOrClient = ({
             className="w-full justify-between"
           >
             {sourcerOrClient
-              ? data?.find(
-                  (item: sourcerOrClientDataType) =>
-                    item.id === sourcerOrClient?.id
-                )?.name
+              ? data
+                  ?.filter((element: sourcerOrClientDataType) => {
+                    if (transactionType === "إرجاع") {
+                      return true;
+                    } else if (transactionType === "شراء") {
+                      return (
+                        element.entity_type === "supplier" ||
+                        element.entity_type === "else"
+                      );
+                    } else {
+                      return (
+                        element.entity_type === "customer" ||
+                        element.entity_type === "else"
+                      );
+                    }
+                  })
+                  ?.find(
+                    (item: sourcerOrClientDataType) =>
+                      item.id === sourcerOrClient?.id &&
+                      item.entity_type == sourcerOrClient?.entity_type
+                  )?.name
               : "أختر موظف..."}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -73,17 +90,23 @@ const SelectSourcerOrClient = ({
                     if (transactionType === "إرجاع") {
                       return true;
                     } else if (transactionType === "شراء") {
-                      return element.entity_type === "supplier" || element.entity_type === "else";
+                      return (
+                        element.entity_type === "supplier" ||
+                        element.entity_type === "else"
+                      );
                     } else {
-                      return element.entity_type === "customer" || element.entity_type === "else";
+                      return (
+                        element.entity_type === "customer" ||
+                        element.entity_type === "else"
+                      );
                     }
                   })
                   ?.map((item: sourcerOrClientDataType, key: number) => (
                     <CommandItem
-                      key={key}
+                      key={`${key} ${item.entity_type}`}
                       onSelect={() => {
                         setSourcerOrClient(item);
-                        setEntity_type(item.entity_type)
+                        setEntity_type(item.entity_type);
                         setOpen(false);
                       }}
                     >
@@ -91,7 +114,8 @@ const SelectSourcerOrClient = ({
                       <CheckIcon
                         className={cn(
                           "ml-auto h-4 w-4",
-                          sourcerOrClient?. id === item.id
+                          sourcerOrClient?.id === item.id &&
+                            item.entity_type == sourcerOrClient?.entity_type
                             ? "opacity-100"
                             : "opacity-0"
                         )}
