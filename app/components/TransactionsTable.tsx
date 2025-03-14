@@ -179,8 +179,6 @@ export function TransactionsTable() {
     refetchInterval: 1500,
   });
 
-  console.log(data);
-
   const [transactions, setTransactions] = useState<any[]>([]);
 
   // ✅ Ensure `data` exists before setting transactions

@@ -35,40 +35,44 @@ export type userDataForm = {
   role: roleDataType[];
 };
 
-export const dataExampleUsers: userDataType[] = [
-  {
-    id: 1,
-    userName: "yousef",
-    password: "1234",
-    role: [
-      { value: true, featureName: "مستخدمين", dbName: "users" },
-      { value: true, featureName: "الموظفين", dbName: "employees" },
-      { value: true, featureName: "الأصناف", dbName: "categories" },
-      { value: true, featureName: "الموردين", dbName: "suppliers" },
-      { value: true, featureName: "العملاء", dbName: "customers" },
-      {
-        value: true,
-        featureName: "إدارة العمليات والخدمات",
-        dbName: "permits",
-      },
-      { value: true, featureName: "المخزن", dbName: "inventory" },
-      { value: true, featureName: "خزنه", dbName: "safeMoney" },
-      { value: true, featureName: "بنوك", dbName: "banks" },
-      { value: true, featureName: "المعاملات", dbName: "transactions" },
-      {
-        value: true,
-        featureName: "التقارير عملاء و موردين",
-        dbName: "reports",
-      },
-      { value: true, featureName: "الأسمنت", dbName: "bridgePoint" },
-    ],
-    date: "135465564",
-  },
-];
+// export const dataExampleUsers: userDataType[] = [
+//   {
+//     id: 1,
+//     userName: "yousef",
+//     password: "1234",
+//     role: [
+//       { value: true, featureName: "مستخدمين", dbName: "users" },
+//       { value: true, featureName: "الموظفين", dbName: "employees" },
+//       { value: true, featureName: "الأصناف", dbName: "categories" },
+//       { value: true, featureName: "الموردين", dbName: "suppliers" },
+//       { value: true, featureName: "العملاء", dbName: "customers" },
+//       {
+//         value: true,
+//         featureName: "إدارة العمليات والخدمات",
+//         dbName: "permits",
+//       },
+//       { value: true, featureName: "المخزن", dbName: "inventory" },
+//       { value: true, featureName: "خزنه", dbName: "safeMoney" },
+//       { value: true, featureName: "بنوك", dbName: "banks" },
+//       { value: true, featureName: "المعاملات", dbName: "transactions" },
+//       {
+//         value: true,
+//         featureName: "التقارير عملاء و موردين",
+//         dbName: "reports",
+//       },
+//       { value: true, featureName: "الأسمنت", dbName: "bridgePoint" },
+//     ],
+//     date: "135465564",
+//   },
+// ];
 
 export const fetchListUsers = async () => {
-  const rows = (await db).select("SELECT * FROM users;");
-  return rows;
+  try {
+    const rows = (await db).select("SELECT * FROM users;");
+    return rows;
+  } catch (error) {
+    console.log(error);
+  }
 };
 export const handleDeleteUser = async (id: number) => {
   (await db)

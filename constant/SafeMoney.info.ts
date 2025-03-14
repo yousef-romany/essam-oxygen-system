@@ -12,6 +12,9 @@ export const fetchMoneyReport = async () => {
                         FROM financial_transactions
                         WHERE transaction_type IN ('service', 'supply')
 
+                UNION ALL
+                    SELECT COALESCE(SUM(total), 0) AS total
+                        FROM invokesbridgepoint
 
                 UNION ALL
 

@@ -67,7 +67,6 @@ const UpdateTransAction = ({ transaction }: any) => {
   } = UseUpdateTransAction();
 
   useEffect(() => {
-    console.log(transaction);
     handleUndo();
   }, [transaction]);
 

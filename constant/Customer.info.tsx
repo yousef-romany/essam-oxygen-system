@@ -4,7 +4,7 @@ import db from "@/lib/db";
 
 export const fetchCustomersList = async () => {
   const query = `
-  SELECT 
+SELECT 
     c.id,
     c.name,
     c.phoneNumber,
@@ -12,71 +12,106 @@ export const fetchCustomersList = async () => {
     c.userId,
     COALESCE(i.name, 'غير متوفر') AS cylinder_name,
 
-    -- تحديد حالة الأسطوانة بناءً على العمليات
-    CASE 
-        WHEN 
-            CAST(
-                COALESCE(SUM(DISTINCT CASE 
-                    WHEN t.transaction_type = 'بيع' AND ti.status = 'ممتلئ' THEN ti.quantity  
-                    ELSE 0 
-                END), 0) 
-                - 
-                COALESCE(SUM(DISTINCT CASE 
-                    WHEN t.transaction_type = 'إرجاع' AND ti.status = 'فارغ' THEN ti.quantity  
-                    ELSE 0 
-                END), 0) 
-            AS SIGNED
-        ) > 0 THEN 'فارغ'
-        ELSE 'ممتلئ'
-    END AS cylinder_status,
+    -- ✅ إجمالي المشتريات
+    COALESCE(SUM(CASE 
+        WHEN t.transaction_type = 'بيع' THEN CAST(ti.quantity AS DOUBLE) * CAST(ti.price AS DOUBLE)
+        ELSE 0 
+    END), 0) AS total_purchases,
 
-    ABS(
-        CAST(
-            COALESCE(SUM(DISTINCT CASE 
-                WHEN t.transaction_type = 'بيع' AND ti.status = 'ممتلئ' THEN ti.quantity  
-                ELSE 0 
-            END), 0) 
-            - 
-            COALESCE(SUM(DISTINCT CASE 
-                WHEN t.transaction_type = 'إرجاع' AND ti.status = 'فارغ' THEN ti.quantity  
-                ELSE 0 
-            END), 0) 
-            AS SIGNED
-        )
-    ) AS cylinder_amount,
+    -- ✅ إجمالي المدفوعات
+    COALESCE(SUM(CASE 
+        WHEN p.amount IS NOT NULL THEN CAST(p.amount AS DOUBLE)
+        ELSE 0 
+    END), 0) AS total_payments,
 
-    -- إجمالي المدفوعات المستلمة من العميل
-    COALESCE(SUM(DISTINCT CAST(p.amount AS DOUBLE)), 0) AS total_payments,
-
-    -- إجمالي السحوبات المتعلقة بالعميل
-    COALESCE(SUM(DISTINCT CASE 
+    -- ✅ إجمالي السحوبات من البنك المتعلقة بالعميل
+    COALESCE(SUM(CASE 
         WHEN bt.transaction_type = 'withdrawal' THEN CAST(bt.amount AS DOUBLE)
         ELSE 0 
     END), 0) AS total_withdrawals,
 
-    -- إجمالي الإيداعات المتعلقة بالعميل
-    COALESCE(SUM(DISTINCT CASE 
+    -- ✅ إجمالي الإيداعات للبنك المتعلقة بالعميل
+    COALESCE(SUM(CASE 
         WHEN bt.transaction_type = 'deposit' THEN CAST(bt.amount AS DOUBLE)
         ELSE 0 
     END), 0) AS total_deposits,
 
-    -- إجمالي المصاريف المتعلقة بالعميل
-    COALESCE(SUM(DISTINCT CASE 
+    -- ✅ إجمالي المصاريف المالية المتعلقة بالعميل
+    COALESCE(SUM(CASE 
         WHEN ft.transaction_type = 'expense' THEN CAST(ft.amount AS DOUBLE)
         ELSE 0 
     END), 0) AS total_expenses,
 
-    -- حساب الرصيد النهائي الصحيح
+    -- ✅ الرصيد النهائي للعميل
     (
-        -- المبالغ المستلمة (المدفوعات + الإيداعات)
-        COALESCE(SUM(DISTINCT CAST(p.amount AS DOUBLE)), 0) 
-        + COALESCE(SUM(DISTINCT CASE WHEN bt.transaction_type = 'deposit' THEN CAST(bt.amount AS DOUBLE) ELSE 0 END), 0)
-    ) - (
-        -- التكاليف (مبيعات + سحوبات + المصاريف)
-        COALESCE(SUM(DISTINCT CASE WHEN t.transaction_type = 'بيع' THEN CAST(ti.quantity * ti.price AS DOUBLE) ELSE 0 END), 0) 
-        + COALESCE(SUM(DISTINCT CASE WHEN bt.transaction_type = 'withdrawal' THEN CAST(bt.amount AS DOUBLE) ELSE 0 END), 0)
-        + COALESCE(SUM(DISTINCT CASE WHEN ft.transaction_type = 'expense' THEN CAST(ft.amount AS DOUBLE) ELSE 0 END), 0)
-    ) AS final_balance
+        COALESCE(SUM(CASE 
+            WHEN t.transaction_type = 'بيع' AND t.payment_status = 'آجل' 
+            THEN CAST(p.amount AS DOUBLE) 
+            ELSE 0 
+        END), 0) 
+        +
+        COALESCE(SUM(CASE 
+            WHEN ft.transaction_type = 'expense' 
+            THEN CAST(ft.amount AS DOUBLE) 
+            ELSE 0 
+        END), 0) 
+        +
+        COALESCE(SUM(CASE 
+            WHEN bt.transaction_type = 'withdrawal' 
+            THEN CAST(bt.amount AS DOUBLE) 
+            ELSE 0 
+        END), 0) 
+    ) 
+    - 
+    (
+        COALESCE(SUM(CASE 
+            WHEN bt.transaction_type = 'deposit' 
+            THEN CAST(bt.amount AS DOUBLE) 
+            ELSE 0 
+        END), 0) 
+        +
+        COALESCE(SUM(CASE 
+            WHEN ft.transaction_type = 'supply' 
+            THEN CAST(ft.amount AS DOUBLE) 
+            ELSE 0 
+        END), 0) 
+    ) 
+    AS final_balance,
+
+    -- ✅ حالة الأسطوانة (ممتلئ أو فارغ)
+    CASE 
+        WHEN 
+            COALESCE(SUM(CASE 
+                WHEN t.transaction_type = 'بيع' AND ti.status = 'ممتلئ' 
+                THEN CAST(ti.quantity AS DOUBLE) 
+                ELSE 0 
+            END), 0) 
+            - 
+            COALESCE(SUM(CASE 
+                WHEN t.transaction_type = 'إرجاع' AND ti.status = 'فارغ' 
+                THEN CAST(ti.quantity AS DOUBLE) 
+                ELSE 0 
+            END), 0) 
+        > 0 THEN  'فارغ'
+        ELSE 'ممتلئ'
+    END AS cylinder_status,
+
+    -- ✅ عدد الأسطوانات المتاحة عند العميل
+    ABS(
+        CAST(
+            COALESCE(SUM(CASE 
+                WHEN t.transaction_type = 'بيع' AND ti.status = 'ممتلئ' 
+                THEN CAST(ti.quantity AS DOUBLE) 
+                ELSE 0 
+            END), 0) 
+            - 
+            COALESCE(SUM(CASE 
+                WHEN t.transaction_type = 'إرجاع' AND ti.status = 'فارغ' 
+                THEN CAST(ti.quantity AS DOUBLE) 
+                ELSE 0 
+            END), 0) 
+        AS SIGNED)
+    ) AS cylinder_amount
 
 FROM customers c
 LEFT JOIN transactions t ON c.id = t.customer_id
@@ -85,12 +120,10 @@ LEFT JOIN payments p ON t.id = p.transaction_id
 LEFT JOIN bank_transactions bt ON c.id = bt.related_entity_id
 LEFT JOIN financial_transactions ft ON c.id = ft.related_entity_id AND ft.entity_type = 'customer'
 LEFT JOIN inventory i ON ti.inventory_id = i.id
+GROUP BY c.id, i.id
+ORDER BY final_balance DESC;
 
--- تجميع البيانات حسب العميل فقط، مع التأكد من عدم تكرار الحسابات المالية
-GROUP BY c.id 
-ORDER BY cylinder_amount DESC, final_balance DESC;
-
-  `;
+`;
 
   try {
     const rows: any[] = await (await db).select(query);
@@ -141,7 +174,6 @@ ORDER BY cylinder_amount DESC, final_balance DESC;
 
     const result = Array.from(customersMap.values());
 
-    console.log("Fetched Customers: ", result);
     return result;
   } catch (error) {
     console.log(error);

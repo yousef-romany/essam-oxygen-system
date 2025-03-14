@@ -16,32 +16,33 @@ SELECT
         WHEN 
             CAST(
                 COALESCE(SUM(CASE 
-                    WHEN t.transaction_type = 'بيع' AND ti.status = 'ممتلئ' THEN CAST(ti.quantity AS FLOAT)  
+                    WHEN t.transaction_type = 'شراء' AND ti.status = 'فارغ' THEN CAST(ti.quantity AS FLOAT)  
                     ELSE 0 
                 END), 0) 
                 - 
                 COALESCE(SUM(CASE 
-                    WHEN t.transaction_type = 'إرجاع' AND ti.status = 'فارغ' THEN CAST(ti.quantity AS FLOAT)  
+                    WHEN t.transaction_type = 'إرجاع' AND ti.status = 'ممتلئ' THEN CAST(ti.quantity AS FLOAT)  
                     ELSE 0 
                 END), 0) 
             AS SIGNED
-        ) > 0 THEN 'فارغ'
-        ELSE 'ممتلئ'
+        ) > 0 THEN 'ممتلئ'
+        ELSE ' فارغ'
     END AS cylinder_status,
 
-    ABS(
+       ABS(
         CAST(
             COALESCE(SUM(CASE 
-                WHEN t.transaction_type = 'بيع' AND ti.status = 'ممتلئ' THEN CAST(ti.quantity AS FLOAT)  
+                WHEN t.transaction_type = 'شراء' AND ti.status = 'فارغ' 
+                THEN CAST(ti.quantity AS DOUBLE) 
                 ELSE 0 
             END), 0) 
             - 
             COALESCE(SUM(CASE 
-                WHEN t.transaction_type = 'إرجاع' AND ti.status = 'فارغ' THEN CAST(ti.quantity AS FLOAT)  
+                WHEN t.transaction_type = 'إرجاع' AND ti.status = 'ممتلئ' 
+                THEN CAST(ti.quantity AS DOUBLE) 
                 ELSE 0 
             END), 0) 
-            AS SIGNED
-        )
+        AS SIGNED)
     ) AS cylinder_amount,
 
     COALESCE(SUM(DISTINCT CAST(p.amount AS FLOAT)), 0) AS total_payments,
@@ -51,13 +52,39 @@ SELECT
 
     -- حساب الرصيد النهائي الصحيح
     (
-        COALESCE(SUM(DISTINCT CAST(p.amount AS FLOAT)), 0) 
-        + COALESCE(SUM(DISTINCT CASE WHEN bt.transaction_type = 'deposit' THEN CAST(bt.amount AS FLOAT) ELSE 0 END), 0)
-    ) - (
-        COALESCE(SUM(DISTINCT CASE WHEN t.transaction_type = 'بيع' THEN CAST(ti.quantity AS FLOAT) * CAST(ti.price AS FLOAT) ELSE 0 END), 0) 
-        + COALESCE(SUM(DISTINCT CASE WHEN bt.transaction_type = 'withdrawal' THEN CAST(bt.amount AS FLOAT) ELSE 0 END), 0)
-        + COALESCE(SUM(DISTINCT CASE WHEN ft.transaction_type = 'expense' THEN CAST(ft.amount AS FLOAT) ELSE 0 END), 0)
-    ) AS final_balance
+        COALESCE(SUM(CASE 
+            WHEN t.transaction_type = 'شراء' AND t.payment_status = 'آجل' 
+            THEN CAST(p.amount AS DOUBLE) 
+            ELSE 0 
+        END), 0) 
+        +
+        COALESCE(SUM(CASE 
+            WHEN ft.transaction_type = 'supply' 
+            THEN CAST(ft.amount AS DOUBLE) 
+            ELSE 0 
+        END), 0) 
+        +
+        COALESCE(SUM(CASE 
+            WHEN bt.transaction_type = 'deposit' 
+            THEN CAST(bt.amount AS DOUBLE) 
+            ELSE 0 
+        END), 0) 
+    ) 
+    - 
+    (
+        COALESCE(SUM(CASE 
+            WHEN bt.transaction_type = 'withdrawal' 
+            THEN CAST(bt.amount AS DOUBLE) 
+            ELSE 0 
+        END), 0) 
+        +
+        COALESCE(SUM(CASE 
+            WHEN ft.transaction_type = 'expense' 
+            THEN CAST(ft.amount AS DOUBLE) 
+            ELSE 0 
+        END), 0) 
+    ) 
+    AS final_balance
 
 FROM suppliers c
 LEFT JOIN transactions t ON c.id = t.supplier_id
@@ -66,7 +93,7 @@ LEFT JOIN payments p ON t.id = p.transaction_id
 LEFT JOIN bank_transactions bt ON c.id = bt.related_entity_id
 LEFT JOIN financial_transactions ft ON c.id = ft.related_entity_id AND ft.entity_type = 'supplier'
 LEFT JOIN inventory i ON ti.inventory_id = i.id
-GROUP BY c.id  -- إزالة i.id لمنع التكرار
+GROUP BY c.id, i.id  -- إزالة i.id لمنع التكرار
 ORDER BY cylinder_amount DESC, final_balance DESC;
 
   `;
@@ -122,7 +149,6 @@ ORDER BY cylinder_amount DESC, final_balance DESC;
 
     const suppliersList = Array.from(suppliersMap.values());
 
-    console.log("Fetched Suppliers: ", suppliersList);
     return suppliersList;
   } catch (error) {
     console.error("Database Error:", error);

@@ -22,7 +22,7 @@ const POSInvoke = ({
     queryFn: fetchListUsers,
     refetchInterval: 1500,
   });
-  console.log(data);
+
   return (
     <div className="w-full p-4 font-mono text-sm" dir="rtl">
       {/* Header */}

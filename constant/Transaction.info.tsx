@@ -5,7 +5,7 @@ import db from "@/lib/db";
 export const fetchTransactionsList = async () => {
   try {
     const rawData = await (
-      await db
+      await await db
     ).select(`
       SELECT 
           t.id AS transaction_id,
@@ -118,90 +118,98 @@ export const handleDeleteTransaction = async (
   transactionId: number,
   type: string
 ) => {
+  const connection = await db;
+
+  if (!transactionId) {
+    console.error("⚠️ معرف المعاملة غير صالح.");
+    return false;
+  }
+
   try {
-    if (!transactionId) throw new Error("⚠️ معرف المعاملة غير صالح.");
+    console.log("🚀 بدء المعاملة...");
+    await connection.execute("BEGIN;");
 
-    (await db).execute("START TRANSACTION");
+    // 🔍 استرجاع العناصر المرتبطة
+    const rows: any[] = await connection.select(
+      `SELECT inventory_id, quantity, status FROM transaction_items 
+       WHERE transaction_id = ?;`,
+      [transactionId]
+    );
 
-    // ✅ 1. استرجاع جميع المنتجات المرتبطة بالمعاملة
-    (await db)
-      .select(
-        `SELECT inventory_id, quantity, status FROM transaction_items WHERE transaction_id = ?`,
-        [transactionId]
-      )
-      .then(async (rows: any[]) => {
-        console.log("rows : ", rows, transactionId);
-        // ✅ التحقق من أن `rows` ليست فارغة
-        if (!Array.isArray(rows) || rows.length === 0) {
-          throw new Error("⚠️ لم يتم العثور على عناصر لهذه المعاملة.");
-        }
+    console.log("🛒 العناصر المسترجعة:", rows);
 
-        console.log("🛒 العناصر المرتبطة بالمعاملة:", rows);
+    if (rows.length > 0) {
+      // console.log("🗑️ حذف transaction_items...");
+      // const deleteItems = await connection.execute(
+      //   "DELETE FROM transaction_items WHERE transaction_id = ?;",
+      //   [transactionId]
+      // );
+      // console.log("✅ عدد الصفوف المحذوفة من transaction_items:", deleteItems.rowsAffected);
 
-        // ✅ 2. تحديث المخزون قبل حذف العناصر
-        for (const item of rows) {
-          console.log(`🔄 تحديث المخزون للمنتج ${item.inventory_id}`);
+      console.log("🔄 تحديث المخزون...");
+      for (const item of rows) {
+        const query =
+          type === "إرجاع"
+            ? `UPDATE inventory SET 
+              full_quantity = full_quantity - CASE WHEN ? = 'ممتلئ' THEN ? ELSE 0 END, 
+              empty_quantity = empty_quantity - CASE WHEN ? = 'فارغ' THEN ? ELSE 0 END
+            WHERE id = ?;`
+            : `UPDATE inventory SET 
+              full_quantity = full_quantity + CASE WHEN ? = 'ممتلئ' THEN ? ELSE 0 END, 
+              empty_quantity = empty_quantity + CASE WHEN ? = 'فارغ' THEN ? ELSE 0 END
+            WHERE id = ?;`;
 
-          if (type == "إرجاع") {
-            (await db).execute(
-              `UPDATE inventory 
-             SET full_quantity = full_quantity - IF(? = 'ممتلئ', ?, 0),
-                 empty_quantity = empty_quantity - IF(? = 'فارغ', ?, 0)
-             WHERE id = ?;`,
-              [
-                item.status,
-                item.quantity,
-                item.status,
-                item.quantity,
-                item.inventory_id,
-              ]
-            );
-          } else {
-            (await db).execute(
-              `UPDATE inventory 
-             SET full_quantity = full_quantity + IF(? = 'ممتلئ', ?, 0),
-                 empty_quantity = empty_quantity + IF(? = 'فارغ', ?, 0)
-             WHERE id = ?;`,
-              [
-                item.status,
-                item.quantity,
-                item.status,
-                item.quantity,
-                item.inventory_id,
-              ]
-            );
-          }
-        }
-
-        // ✅ 5. حذف المعاملة نفسها
-        console.log("🗑️ حذف المعاملة...");
-        (await db).execute(`DELETE FROM transactions WHERE id = ?`, [
-          transactionId,
+        const result = await connection.execute(query, [
+          item.status,
+          item.quantity,
+          item.status,
+          item.quantity,
+          item.inventory_id,
         ]);
 
-        // ✅ 6. تأكيد الحذف
-        (await db).execute("COMMIT");
+        console.log("✅ تحديث المخزون - عدد الصفوف المتأثرة:", result.rowsAffected);
+      }
+    }
 
-        console.log("✅ تم حذف المعاملة بنجاح");
-        toast({
-          variant: "default",
-          title: "تم الحذف",
-          description: "تم حذف المعاملة وجميع البيانات المرتبطة بها.",
-        });
+    // ✅ تعطيل قيود المفاتيح الخارجية مؤقتًا إذا لزم الأمر
+    console.log("🔄 تعطيل قيود المفاتيح الخارجية...");
+    await connection.execute("SET FOREIGN_KEY_CHECKS = 0;");
 
-        return true;
-      })
-      .catch((error: any) =>
-        toast({
-          variant: "destructive",
-          title: "مشكلة",
-          description: `${error}` as string,
-        })
-      );
-  } catch (error) {
+    // ✅ حذف `transaction`
+    console.log("🗑️ حذف المعاملة...");
+    const deleteTransaction = await (await connection)?.execute(
+      `DELETE FROM transactions WHERE id = ?;`,
+      [transactionId]
+    );
+
+    console.log("🔍 نتيجة حذف المعاملة:", deleteTransaction);
+
+    if (deleteTransaction.rowsAffected === 0) {
+      console.warn("⚠️ لم يتم العثور على المعاملة.");
+      throw new Error("لم يتم العثور على المعاملة.");
+    }
+
+    console.log("✅ تم حذف المعاملة بنجاح");
+
+    // ✅ إعادة تفعيل قيود المفاتيح الخارجية
+    console.log("🔄 إعادة تفعيل قيود المفاتيح الخارجية...");
+    await connection.execute("SET FOREIGN_KEY_CHECKS = 1;");
+
+    await connection.execute("COMMIT;");
+    console.log("✅ تم تنفيذ COMMIT بنجاح");
+
+    toast({
+      variant: "default",
+      title: "تم الحذف",
+      description: "تم حذف المعاملة وجميع البيانات المرتبطة بها.",
+    });
+
+    return true;
+  } catch (error: any) {
     console.error("⚠️ خطأ أثناء حذف المعاملة:", error);
 
-    (await db).execute("ROLLBACK");
+    console.log("🔄 تنفيذ ROLLBACK...");
+    await connection.execute("ROLLBACK;");
 
     toast({
       variant: "destructive",

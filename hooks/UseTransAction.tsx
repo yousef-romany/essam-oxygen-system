@@ -157,7 +157,7 @@ const UseTransAction = () => {
 
         // ✅ بعد القفل، تحديث البيانات
         if (transactionType == "إرجاع") {
-          console.log("test : ",  transactionType)
+          console.log("test : ", transactionType);
           await (
             await db
           ).execute(

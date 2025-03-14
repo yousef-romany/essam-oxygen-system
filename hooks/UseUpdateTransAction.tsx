@@ -228,6 +228,13 @@ const UseUpdateTransAction = () => {
             }
           }
 
+          await (
+            await db
+          ).execute(
+            `DELETE FROM payments WHERE transaction_id = ?;;`,
+            [transactionId]
+          );
+
           // ✅ تحديث أو إدخال بيانات الدفع
           await (
             await db
