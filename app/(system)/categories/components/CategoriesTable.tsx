@@ -122,7 +122,7 @@ export function CategoriesTable() {
   });
 
   const table = useReactTable({
-    data: data,
+    data: data as [] | any,
     columns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,

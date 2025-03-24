@@ -114,7 +114,7 @@ export const handleDeleteEmployees = async (id: number) => {
     .catch((error: any) => {
       toast({
         variant: "destructive",
-        title: "خطئ",
+        title: " خطئ, يجب حذف جاميع بيانات الموظف .",
         description: `حدث خطئ فى استقبال البيانات ${error}`,
       });
     });

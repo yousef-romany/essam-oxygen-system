@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +26,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useQuery } from "@tanstack/react-query";
-import Loading from "@/components/layout/Loading";
 import { fetchInvokeDetailsOneBridgePoint } from "@/constant/bridgePoint";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const ShowInvokesBridgePoint = ({
   idInvoke,
@@ -36,7 +37,7 @@ const ShowInvokesBridgePoint = ({
   taxs: number;
 }) => {
   const [clientFetchStatus, setClientFetchStatus] = useState(false);
-  const tableRef: any = useRef<any>();
+  const tableRef: any = useRef<any>(null);
 
   useEffect(() => {
     setClientFetchStatus(true);
@@ -51,7 +52,7 @@ const ShowInvokesBridgePoint = ({
 
   // Loading state
   if (isLoading) {
-    return <Loading />;
+    return <LoadingSpinner />;
   }
 
   // Error state

@@ -65,7 +65,7 @@ export function SuppliersTable() {
     },
     {
       accessorKey: "final_balance",
-      header: "الرصيد النهائي للعميل",
+      header: "الرصيد النهائي للمورد",
     },
     {
       id: "actions",
@@ -95,7 +95,7 @@ export function SuppliersTable() {
   ];
 
   const { isLoading, isError, data, error } = useQuery<
-    { data: Supplier[] },
+    any,
     Error
   >({
     queryKey: ["fetchSuppliersList"],
@@ -103,7 +103,7 @@ export function SuppliersTable() {
     refetchInterval: 1000,
   });
   const table = useReactTable({
-    data: data,
+    data: data as [] | any,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -112,7 +112,7 @@ export function SuppliersTable() {
       sorting,
       globalFilter: filtering,
     },
-    onSortingChange: setSorting,
+    onSortingChange: setSorting as any,
     onGlobalFilterChange: setFiltering,
   });
 

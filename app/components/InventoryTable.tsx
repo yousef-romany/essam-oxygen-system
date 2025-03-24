@@ -79,7 +79,7 @@ export function InventoryTable() {
   });
 
   const table = useReactTable({
-    data: data,
+    data: data as [] | any,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -88,7 +88,7 @@ export function InventoryTable() {
       sorting,
       globalFilter: filtering,
     },
-    onSortingChange: setSorting,
+    onSortingChange: setSorting as any,
     onGlobalFilterChange: setFiltering,
   });
 

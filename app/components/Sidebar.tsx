@@ -13,6 +13,7 @@ import {
   Luggage,
   HardHat,
   UserRoundCog,
+  Database,
 } from "lucide-react";
 import {
   Tooltip,

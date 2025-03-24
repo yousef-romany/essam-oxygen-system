@@ -98,7 +98,7 @@ export function CustomersTable() {
   ];
 
   const { isLoading, isError, data, error } = useQuery<
-    { data: Customer[] },
+    any,
     Error
   >({
     queryKey: ["fetchCustomersList"],
@@ -106,12 +106,8 @@ export function CustomersTable() {
     refetchInterval: 2000,
   });
 
-  // console.log(da)
-
-  console.log(data);
-
   const table = useReactTable({
-    data: data,
+    data: data as [] | any,
     columns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,

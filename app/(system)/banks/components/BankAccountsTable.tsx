@@ -130,8 +130,7 @@ export function BankAccountsTable() {
               <BankAccountModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                account={selectedAccount}
-                onUpdateAccount={handleUpdateAccount}
+                account={selectedAccount as any}
                 refetch={() => refetch()}
                 setIsModalOpen={setIsModalOpen}
               />
@@ -161,7 +160,7 @@ export function BankAccountsTable() {
   });
 
   const table = useReactTable({
-    data: data?.data,
+    data: data?.data as [] | any,
     columns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,

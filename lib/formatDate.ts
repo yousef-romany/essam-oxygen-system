@@ -20,3 +20,9 @@ export function formatToYearMonth(dateStr: any) {
     const month = String(date.getMonth() + 1).padStart(2, '0'); // ضمان وجود رقمين
     return `${year}-${month}`;
 }
+
+
+export function formatDateNumber(dateNumber: any) {
+    const date = new Date(dateNumber * 1000);
+    return date.toISOString().slice(0,10);
+}

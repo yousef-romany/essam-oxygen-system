@@ -112,9 +112,9 @@ const UsersTable = () => {
     queryFn: fetchListUsers,
     refetchInterval: 1500,
   });
-  console.log(data);
+  
   const table = useReactTable({
-    data: data,
+    data: data as [] | any,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

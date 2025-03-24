@@ -137,7 +137,8 @@ ORDER BY cylinder_amount DESC, final_balance DESC;
         // ✅ إضافة القيم الجديدة إلى القيم السابقة
         const existingCustomer = suppliersMap.get(id);
         existingCustomer.total_purchases += total_purchases;
-        existingCustomer.final_balance += final_balance;
+        // TODO: please focus because can be create side Effect.
+        // existingCustomer.final_balance += final_balance;
       }
 
       suppliersMap.get(id).details.push({

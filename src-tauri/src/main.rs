@@ -21,7 +21,7 @@ fn backup_mysql_database(path: String) -> Result<String, String> {
         .arg("--user=root")
         .arg("--password=root")
         .arg("--databases")
-        .arg("itqan")
+        .arg("itqan2")
         .arg("--result-file")
         .arg(&output_path) // Using the dynamically generated path
         .output()

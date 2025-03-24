@@ -67,9 +67,9 @@ const SelectCustomerOrSupplierOrEmployee = ({
   }, [value]);
 
   const handleSaveInSource = () => {
-    console.log(value, "test : ");
     const selectedSource = data.find(
-      (item: any) => item?.id?.toString() === value
+      (item: any) =>
+        item?.id?.toString() === value && item.entity_type == entityType
     );
     if (selectedSource) {
       if (setEditingTransaction) {
@@ -98,7 +98,11 @@ const SelectCustomerOrSupplierOrEmployee = ({
           className="w-full justify-between"
         >
           {value
-            ? data.find((item: any) => item?.id?.toString() === value && item.entity_type == entityType)?.name
+            ? data.find(
+                (item: any) =>
+                  item?.id?.toString() === value &&
+                  item.entity_type == entityType
+              )?.name
             : "أختر..."}
           <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -114,7 +118,7 @@ const SelectCustomerOrSupplierOrEmployee = ({
                   key={`${key} ${item.entity_type}`}
                   onSelect={() => {
                     setValue(item?.id?.toString());
-                    setEntityType(item.entity_type)
+                    setEntityType(item.entity_type);
                     setOpen(false);
                   }}
                 >
@@ -122,12 +126,13 @@ const SelectCustomerOrSupplierOrEmployee = ({
                     ? "المورد : "
                     : item?.entity_type === "customer"
                     ? "عميل : "
-                    : "موظف : "}{" "}
+                    : "موظف : "}
                   {item?.name}
                   <CheckIcon
                     className={cn(
                       "ml-auto h-4 w-4",
-                      value === item?.id?.toString()
+                      value === item?.id?.toString() &&
+                        item.entity_type == entityType
                         ? "opacity-100"
                         : "opacity-0"
                     )}

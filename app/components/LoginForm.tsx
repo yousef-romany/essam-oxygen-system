@@ -40,15 +40,15 @@ export function LoginForm() {
     refetchInterval: 1000,
     enabled,
   });
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement> | any) => {
     e.preventDefault();
     setErrorFront("");
-    const userName: string = e.target["userName"].value;
-    const password: string = e.target["password"].value;
+    const userName: any = e?.target["userName"]?.value;
+    const password: any = e?.target["password"]?.value;
 
 
     const userData: userDataType =
-      data &&
+      Array.isArray(data) &&
       data?.find(
         (element: userDataType) =>
           element.userName == userName && element.password == password

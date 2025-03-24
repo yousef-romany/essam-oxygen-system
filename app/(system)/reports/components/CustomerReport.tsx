@@ -49,10 +49,10 @@ export function CustomerReport() {
   const [dateTo, setDateTo] = useState<string>("");
 
   const { isLoading, isError, data, error } = useQuery<
-    { data: Transaction[] },
+    any,
     Error
   >({
-    queryKey: ["fetchReport"],
+    queryKey: ["fetchReporttests"],
     queryFn: async () => await fetchReport(),
     refetchInterval: 2000,
   });
@@ -269,7 +269,7 @@ export function CustomerReport() {
                     {(() => {
                       // تجميع الفواتير بنفس رقم الفاتورة
                       const groupedTransactions: Record<string, any[]> =
-                        filteredTransactions?.reduce(
+                        (filteredTransactions as any)?.reduce(
                           (acc: Record<string, any[]>, transaction: any) => {
                             acc[transaction.transactionId] =
                               acc[transaction.transactionId] || [];

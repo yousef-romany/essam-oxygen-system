@@ -42,7 +42,7 @@ const SelectSources = ({ setSource }: any) => {
   }, [value]);
   const handleSaveInSource = () => {
     if (value !== "مجهول") {
-      const objectSource = data.find((item: any) => item.id === value);
+      const objectSource = data?.find((item: any) => item.id === value);
       console.log(objectSource);
       setSource(objectSource);
       return;
@@ -64,7 +64,7 @@ const SelectSources = ({ setSource }: any) => {
             {value
               ? value === "مجهول"
                 ? "مجهول"
-                : data.find((item: any) => item.id === value)?.name
+                : data?.find((item: any) => item.id === value)?.name
               : "أختر مورد..."}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>

@@ -40,6 +40,7 @@ type BankAccount = {
   bankName: string;
   balance: number;
   transactions: Transaction[];
+  finalBalance: any
 };
 
 type Transaction = {
@@ -62,8 +63,8 @@ type BankAccountModalProps = {
   isOpen: boolean;
   onClose: () => void;
   account: BankAccount;
-  refetch: () => void;
-  setIsModalOpen: Dispatch<SetStateAction<boolean>>;
+  refetch: () => void | any;
+  setIsModalOpen: Dispatch<SetStateAction<boolean>> | any;
 };
 
 export function BankAccountModal({

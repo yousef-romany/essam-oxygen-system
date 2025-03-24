@@ -54,7 +54,6 @@ export default function DateFilter({
       <CardContent dir="rtl">
         <div className="space-y-6" dir="rtl">
           <RadioGroup
-            defaultValue="range"
             onValueChange={setFilterType}
             className="flex flex-col space-y-2"
             dir="rtl"

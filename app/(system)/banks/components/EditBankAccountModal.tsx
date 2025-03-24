@@ -19,7 +19,16 @@ type BankAccount = {
   accountNumber: string;
   bankName: string;
   balance: number;
-  transactions: any[];
+  transactions: Transaction[];
+  finalBalance: any
+};
+
+type Transaction = {
+  id: string;
+  documentNumber: string;
+  amount: number;
+  date: string;
+  description: string;
 };
 
 type EditBankAccountModalProps = {

@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { Cairo } from "next/font/google";
 import type React from "react";
 import { ThemeProvider } from "./NextThemesProvider";
 import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
-
-const cairo = Cairo({ subsets: ["arabic"] });
 
 export const metadata: Metadata = {
   title: "إدارة مخزون أسطوانات الغاز",
@@ -19,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
-      <body className={cairo.className}>
+      <body>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

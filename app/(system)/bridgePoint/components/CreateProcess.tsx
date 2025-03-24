@@ -14,12 +14,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import ProductsBridgePoint from "./ProductsBridgePoint";
-// import SelectClients from "@/app/(layoutBuy&Sale)/sale/components/SelectClients";
-// import SelectSources from "@/app/(layoutBuy&Sale)/buy/components/SelectSources";
 import { FormValuesBridagePoint } from "@/constant/bridgePoint";
 import { toast } from "@/hooks/use-toast";
 import db from "@/lib/db";
-import { Label } from "@/components/ui/label";
 import SelectClients from "@/components/SelectClients";
 import SelectSources from "@/components/SelectSources";
 
@@ -30,8 +27,8 @@ const CreateProcess = () => {
   const userId = localStorage.getItem("id");
   const [clientID, setClientID]: any = useState<any>();
   const [sourceID, setSourceID]: any = useState<any>();
-  const [notNowClient, setNotNowClient] = useState(false);
-  const [notNowSource, setNotNowSource] = useState(false);
+  const [notNowClient, setNotNowClient] = useState(true);
+  const [notNowSource, setNotNowSource] = useState(true);
   const form = useForm<FormValuesBridagePoint>({
     defaultValues: {
       clientName: "",
@@ -259,7 +256,7 @@ const CreateProcess = () => {
           />
         </div>
 
-        <div className="flex gap-6">
+        {/* <div className="flex gap-6">
           <div className="flex gap-1 items-center">
             <Label htmlFor="notNowClient">أجل عميل</Label>
             <Input
@@ -279,7 +276,7 @@ const CreateProcess = () => {
               id="notNowSource"
             />
           </div>
-        </div>
+        </div> */}
 
         <ProductsBridgePoint
           fields={fields}

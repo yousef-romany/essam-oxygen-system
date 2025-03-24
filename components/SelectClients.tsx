@@ -42,7 +42,7 @@ const SelectClients = ({ setClient }: any) => {
   }, [value]);
   const handleSaveInSource = () => {
     if (value !== "مجهول") {
-      const objectSource = data.find((item: any) => item.id === value);
+      const objectSource = data?.find((item: any) => item.id === value);
       setClient(objectSource);
       console.log(objectSource)
       return;
@@ -64,7 +64,7 @@ const SelectClients = ({ setClient }: any) => {
             {value
               ? value === "مجهول"
                 ? "مجهول"
-                : data.find((item: any) => item.id === value)?.name
+                : data?.find((item: any) => item.id === value)?.name
               : "أختر عميل..."}
             <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>

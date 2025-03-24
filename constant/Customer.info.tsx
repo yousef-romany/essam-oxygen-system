@@ -160,7 +160,8 @@ ORDER BY final_balance DESC;
         // ✅ إضافة القيم الجديدة إلى القيم السابقة
         const existingCustomer = customersMap.get(id);
         existingCustomer.total_purchases += Number(total_purchases);
-        existingCustomer.final_balance += Number(final_balance);
+        // TODO: please focus because can be create side Effect.
+        // existingCustomer.final_balance += Number(final_balance);
       }
 
       if (cylinder_name && cylinder_name !== "غير متوفر") {

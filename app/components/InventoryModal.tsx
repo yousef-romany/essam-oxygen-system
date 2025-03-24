@@ -15,7 +15,7 @@ interface InventoryModalProps {
     name: string;
     full_quantity: number;
     empty_quantity: number;
-  };
+  } | any;
 }
 
 export function InventoryModal({
