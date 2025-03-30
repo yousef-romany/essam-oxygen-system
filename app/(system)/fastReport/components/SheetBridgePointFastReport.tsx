@@ -66,10 +66,10 @@ const SheetBridgePointFastReport = ({data }: { data: any }) => {
                     {invoice.carNumber}
                   </TableCell>
                   <TableCell className="text-center">
-                    {invoice.entity_nameCustomer}
+                    {invoice.entity_nameCustomer || "مجهول"}
                   </TableCell>
                   <TableCell className="text-center">
-                    {invoice.entity_nameSupplier}
+                    {invoice.entity_nameSupplier || "مجهول"}
                   </TableCell>
                   <TableCell className="text-center">
                     {invoice.total}
@@ -82,8 +82,9 @@ const SheetBridgePointFastReport = ({data }: { data: any }) => {
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={6} className="text-right">أجمالى</TableCell>
-              <TableCell className="text-center">{total}</TableCell>
+              <TableCell colSpan={5} className="text-right">أجمالى</TableCell>
+              <TableCell className="text-center">{total.toFixed(2)}</TableCell>
+              <TableCell className="text-center">{}</TableCell>
             </TableRow>
           </TableFooter>
         </Table>

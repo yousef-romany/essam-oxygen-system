@@ -18,7 +18,7 @@ const SheetBankFastReport = ({ data }: {data: any}) => {
   const total = useMemo(()=> {
     return data?.reduce((sum: number, item: any) => {
       if(item.transaction_type == "expense") {
-        return Number(item.amount) - sum;
+        return sum - Number(item.amount);
       } else return Number(item.amount) + sum
     }, 0)
   }, [data]) ;

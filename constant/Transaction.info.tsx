@@ -127,7 +127,7 @@ export const handleDeleteTransaction = async (
 
   try {
     console.log("🚀 بدء المعاملة...");
-    await connection.execute("BEGIN;");
+    // await connection.execute("BEGIN;");
 
     // 🔍 استرجاع العناصر المرتبطة
     const rows: any[] = await connection.select(
@@ -173,7 +173,7 @@ export const handleDeleteTransaction = async (
 
     // ✅ تعطيل قيود المفاتيح الخارجية مؤقتًا إذا لزم الأمر
     console.log("🔄 تعطيل قيود المفاتيح الخارجية...");
-    await connection.execute("SET FOREIGN_KEY_CHECKS = 0;");
+    // await connection.execute("SET FOREIGN_KEY_CHECKS = 0;");
 
     // ✅ حذف `transaction`
     console.log("🗑️ حذف المعاملة...");
@@ -192,11 +192,11 @@ export const handleDeleteTransaction = async (
     console.log("✅ تم حذف المعاملة بنجاح");
 
     // ✅ إعادة تفعيل قيود المفاتيح الخارجية
-    console.log("🔄 إعادة تفعيل قيود المفاتيح الخارجية...");
-    await connection.execute("SET FOREIGN_KEY_CHECKS = 1;");
+    // console.log("🔄 إعادة تفعيل قيود المفاتيح الخارجية...");
+    // await connection.execute("SET FOREIGN_KEY_CHECKS = 1;");
 
-    await connection.execute("COMMIT;");
-    console.log("✅ تم تنفيذ COMMIT بنجاح");
+    // await connection.execute("COMMIT;");
+    // console.log("✅ تم تنفيذ COMMIT بنجاح");
 
     toast({
       variant: "default",
@@ -209,7 +209,7 @@ export const handleDeleteTransaction = async (
     console.error("⚠️ خطأ أثناء حذف المعاملة:", error);
 
     console.log("🔄 تنفيذ ROLLBACK...");
-    await connection.execute("ROLLBACK;");
+    // await connection.execute("ROLLBACK;");
 
     toast({
       variant: "destructive",

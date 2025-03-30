@@ -129,7 +129,8 @@ export const fetchMonthDataBridgePointRange = async (from: any, to: any) => {
         WHEN s.id IS NOT NULL THEN 'supplier'
         ELSE 'unknown'
     END AS entity_type,
-    COALESCE(c.name, s.name, 'غير معروف') AS entity_name
+    COALESCE(c.name, 'غير معروف') AS entity_nameCustomer,
+    COALESCE(s.name, 'غير معروف') AS entity_nameSupplier
 FROM invokesbridgepoint i
 LEFT JOIN customers c ON i.clientId = c.id
 LEFT JOIN suppliers s ON i.clientId = s.id
