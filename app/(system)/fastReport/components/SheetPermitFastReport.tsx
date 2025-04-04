@@ -97,7 +97,7 @@ const SheetPermitFastReport = ({ data }: { data: any }) => {
                 <TableCell colSpan={3} className="text-right">
                   أجمالى
                 </TableCell>
-                <TableCell className="text-center">{total.toFixed(2)}</TableCell>
+                <TableCell className="text-center">{ total?.toFixed(2)}</TableCell>
                 <TableCell className="text-center"></TableCell>
                 <TableCell className="text-center"></TableCell>
               </TableRow>

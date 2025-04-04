@@ -167,7 +167,7 @@ const TransActionsSheet = () => {
           <SheetFooter className="flex gap-4">
             <div className="flex justify-between items-center flex-row-reverse w-full">
               <h1 className="text-lg font-semibold">
-                أجمالى الفاتوره : {total.toFixed(2)}
+                أجمالى الفاتوره : { total?.toFixed(2)}
               </h1>
             </div>
             <Button onClick={handleSubmit} disabled={stateInvoke}>

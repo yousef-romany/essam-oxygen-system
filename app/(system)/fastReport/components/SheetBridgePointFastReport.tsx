@@ -83,7 +83,7 @@ const SheetBridgePointFastReport = ({data }: { data: any }) => {
           <TableFooter>
             <TableRow>
               <TableCell colSpan={5} className="text-right">أجمالى</TableCell>
-              <TableCell className="text-center">{total.toFixed(2)}</TableCell>
+              <TableCell className="text-center">{total?.toFixed(2)}</TableCell>
               <TableCell className="text-center">{}</TableCell>
             </TableRow>
           </TableFooter>
